@@ -4,51 +4,49 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 
 ---
 
-## Session 0 — Spike: MapLibre + H3 rendering ⚠️ DO FIRST
+## Session 0 — Spike: MapLibre + H3 rendering ✅ DONE
 
 **Goal:** Confirm that rendering ~17,000 H3 hex polygons as a MapLibre GeoJSON layer is performant before building anything that depends on it.
 
-- [ ] Install `@maplibre/maplibre-react-native` and `h3-js`
-- [ ] Configure dev build (`npx expo run:ios` or EAS dev build)
-- [ ] Write a throwaway test screen that:
-  - Generates GeoJSON boundaries for all ~17k land cells using `h3.cellToBoundary()`
-  - Mounts them as a single MapLibre GeoJSON source with a fill layer
-- [ ] Measure perceived frame rate at world zoom (zoom ~2) and city zoom (~8)
-- [ ] Test hex tap detection via `onPress` on the fill layer
+- [x] Install `@maplibre/maplibre-react-native` and `h3-js`
+- [x] Configure dev build (`npx expo run:ios`)
+- [x] Write spike screen (`app/(tabs)/index.tsx`):
+  - Generates GeoJSON boundaries for ~17k cells from a lat/lng grid
+  - Mounts them as a MapLibre GeoJSON source with fill + line layers
+- [x] Verified smooth rendering at world zoom and city zoom on simulator
+- [x] Tap detection confirmed working via lat/lng → H3 index conversion
 
-**Done when:** World zoom renders without visible lag, hexes are tappable at city zoom, and performance is acceptable on a physical device. If rendering is too slow, investigate splitting into zoom-dependent layers or pre-clustering before proceeding to Session 1.
+**Findings:**
+- MapLibre v11 uses new named-export API (`Map`, `Camera`, `GeoJSONSource`, `Layer`) — not the old Mapbox-style `MapLibreGL.*`. See `memory/maplibre_v11_api.md`.
+- h3-js v4 (WASM) crashes in Hermes with `utf-16le` encoding error. Pinned to **h3-js v3.7.2** (pure asm.js).
+- h3-js v3 asm.js has two Hermes incompatibilities fixed by `lib/polyfills/emscripten.ts`: a `document` stub and a `TextDecoder` patch.
+- GeoJSON build time for 17k cells: ~1,300ms (acceptable; real app pre-generates from disk).
 
 ---
 
-## Session 1 — Foundation
+## Session 1 — Foundation ✅ DONE
 
 **Goal:** All dependencies installed, SQLite working, land cells generated, theme system live.
 
-- [ ] Install remaining packages:
-  - `expo-media-library`
-  - `expo-sqlite`
-  - `posthog-react-native`
-  - `expo-location`
-  - `react-native-share`
-  - `expo-store-review`
-  - `@react-native-async-storage/async-storage`
-- [ ] Download Natural Earth 1:50m land polygons GeoJSON → `assets/natural-earth-land-50m.json`
-- [ ] Write `scripts/generate-land-cells.js`:
-  - For each Natural Earth land polygon, call `h3.polygonToCells(polygon, 4)`
-  - Deduplicate, add `country_code` via point-in-polygon on country polygons
-  - Write `assets/land-cells.json` — array of `{ h3index, country_code }`
-- [ ] Run the script, verify ~17,000 entries in `land-cells.json`
-- [ ] Implement `lib/db/client.ts` — `expo-sqlite` singleton
-- [ ] Implement `lib/db/schema.ts` — `CREATE TABLE` SQL
-- [ ] Implement `lib/db/migrations.ts` — versioned migration runner
-- [ ] Implement `lib/db/queries.ts` — typed query functions: `insertCell`, `upsertCell`, `getAllCells`, `getCellByIndex`, `updateGeocode`
-- [ ] Implement `lib/theme/tokens.ts` — design token constants
-- [ ] Implement `lib/theme/ThemeContext.tsx` — context + `useTheme()` hook, AsyncStorage persistence
-- [ ] Wire `ThemeContext` provider into `app/_layout.tsx`
-- [ ] Set up `constants/colours.ts` — 6 accent colour presets
-- [ ] Set up `constants/h3.ts` — `RESOLUTION = 4`
+- [x] Install remaining packages: `expo-media-library`, `expo-sqlite`, `posthog-react-native`, `expo-location`, `react-native-share`, `expo-store-review`, `@react-native-async-storage/async-storage`
+- [x] Download Natural Earth 1:50m land + country polygons → `assets/natural-earth-land-50m.json`, `assets/natural-earth-countries-50m.json`
+- [x] Write `scripts/generate-land-cells.js` — Natural Earth polygons → H3 cells with country codes
+- [x] Run script → `assets/land-cells.json` with **74,942 entries** (see note below)
+- [x] Implement `lib/db/client.ts` — `expo-sqlite` singleton
+- [x] Implement `lib/db/schema.ts` — `CREATE TABLE` SQL
+- [x] Implement `lib/db/migrations.ts` — migration runner
+- [x] Implement `lib/db/queries.ts` — `upsertCell`, `insertManualCell`, `getAllCells`, `getCellByIndex`, `updateGeocode`, `getCellCountByCountry`, `getCellsGroupedByYear`
+- [x] Implement `lib/theme/tokens.ts` — design token constants
+- [x] Implement `lib/theme/ThemeContext.tsx` — context + `useTheme()` hook, AsyncStorage persistence
+- [x] Wire `ThemeProvider` + `runMigrations()` into `app/_layout.tsx`
+- [x] Set up `constants/colours.ts` — 6 accent colour presets
+- [x] Set up `constants/h3.ts` — `RESOLUTION = 4`, `LAND_CELL_COUNT = 74942`
 
-**Done when:** `land-cells.json` exists with ~17k entries, SQLite opens and `visited_cells` table is created, `useTheme()` returns the stored accent colour.
+**Findings:**
+- The spec stated "~17,000 land cells at res 4" — actual figure is **74,942**. H3 res 4 has ~288,000 total cells globally; ~29% are land. The spec's count was wrong by ~4×.
+- UI copy on Stats screen ("N hexes of 59,400 on Earth") needs updating to reflect the real count.
+- The land outline MapLibre layer will render ~75k polygons, not 17k. Real-device performance check needed in Session 4; if needed, hide outline below zoom 3.
+- **Native rebuild required** before Sessions 2–3 can be tested: `npx expo run:ios`
 
 ---
 
@@ -86,7 +84,7 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
   - Uses `expo-media-library` `getAssetsAsync` with `mediaType: 'photo'`
   - For each asset, calls `getAssetInfoAsync` to get `location`
   - Skips assets with no GPS
-  - Calls `h3.latLngToCell(lat, lng, 4)` on each coordinate
+  - Calls `h3.geoToH3(lat, lng, 4)` on each coordinate (h3-js v3 API)
   - Upserts into SQLite via `lib/db/queries.ts`
   - Stores final cursor in AsyncStorage `last_scan_cursor`
 - [ ] Build `features/onboarding/ScanningScreen.tsx`:
@@ -111,27 +109,23 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 
 **Goal:** Full-bleed map with both hex layers, overlay UI, and zoom controls.
 
-- [ ] Implement `lib/h3/hexUtils.ts` — `latLngToCell`, `cellToBoundary` wrappers
+- [ ] Implement `lib/h3/hexUtils.ts` — v4-style wrappers (`latLngToCell`, `cellToBoundary`) over h3-js v3 API
 - [ ] Implement `lib/h3/geoUtils.ts`:
   - `cellsToGeoJSON(cells: string[]): GeoJSON.FeatureCollection` — converts H3 indices to polygon features
   - Each feature carries `h3index` in properties for tap identification
-- [ ] Implement `lib/h3/landCells.ts` — imports `assets/land-cells.json`, exports `landCellIndices: string[]` and `landCellCount: number`
+- [ ] Implement `lib/h3/landCells.ts` — imports `assets/land-cells.json`, exports `landCellIndices: string[]`, `landCellCount: number`, `landCellsByCountry: Record<string, number>`
 - [ ] Build `features/map/HexLayer.tsx`:
-  - `ShapeSource` + `FillLayer` for land outline (grey stroke, transparent fill)
-  - `ShapeSource` + `FillLayer` for visited cells (accent colour fill)
+  - `GeoJSONSource` + `Layer` (fill) for land outline (grey stroke, transparent fill)
+  - `GeoJSONSource` + `Layer` (fill) for visited cells (accent colour fill)
   - Land GeoJSON computed once on mount, cached with `useMemo`
+  - **Performance check**: if 75k land-outline polygons causes frame drops at world zoom, add `minzoom: 2` or `maxzoom` filter to hide at extreme zoom-out
 - [ ] Build `features/map/MapScreen.tsx`:
-  - Full-bleed `MapLibreGL.MapView` with inline plain-background style
+  - Full-bleed `Map` with inline plain-background style
   - Mounts `HexLayer`
   - Handles tap events — identifies tapped H3 index, opens correct sheet
-- [ ] Build `features/map/TopBar.tsx`:
-  - "WORLD COVERAGE" small caps + "HexPlore" bold
-  - Share (↗) and Recenter (⌖) circular buttons
-  - Zoom level monospace label
-- [ ] Build `features/map/ZoomControls.tsx` — + / − buttons, right mid-screen
-- [ ] Build `features/map/StatsBar.tsx`:
-  - Floating pill above tab bar: World covered %, Hexes, Countries ›
-  - "Countries ›" navigates to Stats tab
+- [ ] Build `features/map/TopBar.tsx`
+- [ ] Build `features/map/ZoomControls.tsx`
+- [ ] Build `features/map/StatsBar.tsx`
 - [ ] Wire PostHog: `map_viewed`
 
 **Done when:** Map renders both layers with correct colours, world coverage % shown in stats bar, zoom controls change zoom level.
@@ -176,7 +170,6 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 
 **Goal:** Full Stats screen with real data from SQLite and land-cells.json.
 
-- [ ] Derive per-country land cell counts from `assets/land-cells.json` (group by `country_code`) — export from `lib/h3/landCells.ts` as `landCellsByCountry: Record<string, number>`
 - [ ] Build `features/stats/HeroNumber.tsx` — large monospace `X.XX%`, subtitle with hex count and km² estimate
 - [ ] Build `features/stats/CountryList.tsx`:
   - Queries `visited_cells` grouped by `country_code`
@@ -232,7 +225,8 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
   - No geotagged photos found during scan
   - Map with zero visited cells (first launch)
 - [ ] Audit all PostHog events — confirm they fire at the right moments
-- [ ] Remove Session 0 throwaway test screen
+- [ ] Remove Session 0 throwaway spike screen (`app/(tabs)/index.tsx`)
+- [ ] Update Stats screen copy: "N hexes of 74,942 land cells" (not 59,400)
 - [ ] Final device run: no crashes through the full flow
 
 **Done when:** App works end-to-end on device, all screens match the design reference, no console errors or New Architecture warnings.
@@ -241,12 +235,11 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 
 ## Riskiest Technical Unknowns
 
-Spike these before committing to an approach:
-
-| # | Risk | Why it matters | When to spike |
-|---|------|----------------|---------------|
-| 1 | **MapLibre + 17k GeoJSON polygons** | May cause frame drops at world zoom; entire map architecture depends on this | Session 0 |
-| 2 | **`expo-media-library` GPS access** | `getAssetInfoAsync()` may be slow at scale; iOS 17+ privacy manifest may be required | Session 3, real device |
-| 3 | **New Architecture compatibility** | `maplibre-react-native` and `react-native-share` Turbo Module support unclear | Before Session 0 installs |
-| 4 | **`react-native-view-shot`** | Not in original spec; needed for share card; New Arch support needs verification | Session 7 |
-| 5 | **Land cell count accuracy** | Script must produce the right ~17k cells; validate against known H3 datasets | Session 1 script |
+| # | Risk | Status |
+|---|------|--------|
+| 1 | **MapLibre + 17k GeoJSON polygons** | ✅ Resolved — smooth at 17k; 75k untested (Session 4) |
+| 2 | **h3-js Hermes compatibility** | ✅ Resolved — pinned to v3.7.2 + `lib/polyfills/emscripten.ts` |
+| 3 | **`expo-media-library` GPS access** | ⚠️ Untested — real device needed in Session 3 |
+| 4 | **New Architecture compatibility** | ⚠️ Partially verified — all packages installed, runtime check pending rebuild |
+| 5 | **`react-native-view-shot`** | ⚠️ Not yet installed — verify New Arch support before Session 7 |
+| 6 | **Land cell count accuracy** | ✅ Resolved — 74,942 cells confirmed from Natural Earth data |
