@@ -24,8 +24,6 @@ export default function ShareCard({ mapImageUri, worldPct, hexCount, countryCoun
       )}
 
       <View style={styles.overlay}>
-        <Text style={styles.brand}>HEXPLORE · {year}</Text>
-
         <View style={styles.pctRow}>
           <Text style={[styles.pctNumber, { color: accent }]}>{worldPct.toFixed(2)}</Text>
           <Text style={[styles.pctSign, { color: accent }]}>%</Text>
@@ -61,16 +59,8 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: 'rgba(10,10,9,0.88)',
     paddingHorizontal: 24,
-    paddingTop: 18,
-    paddingBottom: 28,
-  },
-  brand: {
-    fontFamily: 'ui-monospace',
-    fontSize: 9,
-    letterSpacing: 2.2,
-    color: 'rgba(250,250,247,0.4)',
-    textTransform: 'uppercase',
-    marginBottom: 10,
+    paddingTop: 14,
+    paddingBottom: 14,
   },
   pctRow: {
     flexDirection: 'row',
@@ -93,13 +83,13 @@ const styles = StyleSheet.create({
   pctSub: {
     fontSize: 13.5,
     color: 'rgba(250,250,247,0.5)',
-    marginTop: 4,
+    marginTop: 2,
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 12,
+    marginTop: 8,
   },
   stat: {
     fontFamily: 'ui-monospace',
@@ -116,6 +106,6 @@ const styles = StyleSheet.create({
     fontSize: 9,
     letterSpacing: 1.2,
     color: 'rgba(250,250,247,0.25)',
-    marginTop: 12,
+    marginTop: 8,
   },
 });
