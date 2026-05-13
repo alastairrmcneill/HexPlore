@@ -55,10 +55,10 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 **Goal (simplified from original spec):** Single-screen onboarding with three in-place states: welcome → scanning → done. Matches design-reference exactly; no carousel.
 
 - [x] Install `react-native-svg` (needed for hex polygon rendering)
-- [x] Register `onboarding` route in `app/_layout.tsx`; change `anchor` to `'onboarding'`; `gestureEnabled: false` prevents back-swipe to onboarding from main app
-- [x] Create `app/onboarding/index.tsx` — state machine (`checking | welcome | scanning | done`):
-  - `checking`: reads `onboarding_complete` from AsyncStorage; redirects to `/(tabs)` if already set, otherwise shows welcome
-  - `welcome`: hex bloom animation + headline copy + "Scan my photos →" dark pill CTA
+- [x] Register `onboarding` route in `app/_layout.tsx`; `gestureEnabled: false` prevents back-swipe to onboarding from main app
+- [x] Onboarding gate in `app/(tabs)/_layout.tsx` — checks `onboarding_complete` on mount; renders `<Redirect href="/onboarding" />` if not set (idiomatic Expo Router pattern; `unstable_settings.anchor` does not control launch URL on native)
+- [x] Create `app/onboarding/index.tsx` — state machine (`welcome | scanning | done`):
+  - `welcome`: hex bloom animation + headline copy + "Scan my photos →" dark pill CTA; `<Stack.Screen options={{ headerShown: false }} />` declared inline to suppress nav header
   - `scanning`: scan ripple filling radially + live `X% · N of M photos` progress driven by real `scanCameraRoll` callback
   - `done`: fully-filled ripple + hex count + "See results →" button; writes `onboarding_complete: 'true'` then navigates to `/(tabs)`
 - [x] Build `features/onboarding/HexBloom.tsx`:
@@ -78,6 +78,8 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 - No photo count shown on the welcome CTA — `expo-media-library` requires permission before `totalCount` is available.
 - `getAssetInfoAsync` is one call per asset; slow for large libraries but acceptable for MVP. Incremental re-scan via `last_scan_cursor` is a Session 8 follow-up.
 - `react-native-svg` added to dependencies; **native rebuild required**: `npx expo run:ios`
+- `unstable_settings.anchor` in `_layout.tsx` affects back-navigation history only — it does not set the launch URL on native. Onboarding gate must live in the tabs layout (or an equivalent guarded route), not the root layout.
+- `react-native-svg` does not honour `overflow: visible` like web SVG. HexBloom viewBox expanded to `±165` (from `±140`) to contain all hex vertices without clipping.
 
 ---
 
