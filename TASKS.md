@@ -107,37 +107,40 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 
 ---
 
-## Session 5 — Cell interaction sheets
+## Session 5 — Cell interaction sheets ✅ DONE
 
 **Goal:** Tapping any hex opens the correct bottom sheet; visited hexes show photos.
 
-- [ ] Build `components/BottomSheet.tsx`:
+- [x] Build `components/BottomSheet.tsx`:
   - Gesture Handler + Reanimated swipe-to-dismiss
   - Backdrop tap to dismiss
-  - Configurable snap points
-- [ ] Build `features/map/EmptyCellSheet.tsx`:
-  - Reverse-geocoded location name + coordinates
-  - Country flag + name
+  - `pointerEvents="none"` when hidden so it never blocks map taps
+- [x] Build `features/map/EmptyCellSheet.tsx`:
+  - Country flag + ISO code, coordinates
   - "Mark as visited" button → inserts `source: 'manual'` row into SQLite, updates map layer
-- [ ] Implement `lib/media/geocoder.ts`:
+- [x] Implement `lib/media/geocoder.ts`:
   - `enqueueGeocode(h3index: string): void`
   - FIFO queue, processes with 1-second delay between calls
   - Calls `expo-location`'s `reverseGeocodeAsync` on cell centroid
   - Writes result back via `queries.updateGeocode()`
-- [ ] Build `features/map/HexNeighborThumbnail.tsx`:
+- [x] Build `features/map/HexNeighborThumbnail.tsx`:
   - SVG rendering of a 7-hex cluster (target cell + 6 neighbours)
   - Colours each hex accent if visited, outline-only if not
-- [ ] Build `features/map/CellSheet.tsx`:
+- [x] Build `features/map/CellSheet.tsx`:
   - Header: `HexNeighborThumbnail` + flag + country + place name + region
-  - Metric strip: first photo date, photo count, coordinates
-  - `PhotoStrip` below
+  - Metric strip: first photo date ("14 Jan 2023"), photo count, coords ("38.10°, -122.70°") — all uniform single-value layout
+  - `PhotoStrip` below metrics
   - Enqueues geocoding if cell not yet geocoded
-- [ ] Build `features/map/PhotoStrip.tsx`:
-  - Queries `expo-media-library` for assets in the cell's H3 bounding area
-  - Horizontal `FlatList` of `Image` thumbnails
-- [ ] Wire PostHog: `cell_tapped` (source, country), `cell_marked_manual`
+- [x] Build `features/map/PhotoStrip.tsx`:
+  - Fetches asset IDs from `cell_photos` SQLite table via `getPhotoIdsByCell`
+  - Resolves to `localUri` via `getAssetInfoAsync`, shows up to 12 images
+  - Horizontal `FlatList` of `Image` thumbnails, returns null if no photos
+- [ ] Wire PostHog: `cell_tapped` (source, country), `cell_marked_manual` — deferred to Session 8
 
-**Done when:** Both sheets open on tap, photo strip shows real images, manual mark updates the visited layer on the map immediately.
+**Findings:**
+- `cell_photos` table + `insertCellPhoto` wired into scanner — photo strip has full data pipeline from first run
+- `TopBar`'s `bar` View was missing `pointerEvents="box-none"`, causing the transparent area between the title and glass buttons to silently swallow map taps. Fixed: `bar` now uses `box-none`, title `<View>` uses `none`. The `gradient` and `zoomIndicator` views already had `pointerEvents="none"`.
+- CellSheet metric strip refactored: removed the bold-value / grey-sub split that unevenly weighted one coordinate over the other. Date now renders as "14 Jan 2023" (single value); coords as "38.10°, -122.70°" (single value). All three metrics are now structurally identical: monospace label + single value.
 
 ---
 

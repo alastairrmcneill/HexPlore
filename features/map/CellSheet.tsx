@@ -21,20 +21,16 @@ function codeToFlag(code: string): string {
     .join('');
 }
 
-function formatDate(ms: number | null): { main: string; sub: string } {
-  if (!ms) return { main: '—', sub: '' };
-  const d = new Date(ms);
-  const main = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-  const sub = d.getFullYear().toString();
-  return { main, sub };
+function formatDate(ms: number | null): string {
+  if (!ms) return '—';
+  return new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Metric({ label, value }: { label: string; value: string }) {
   return (
     <View>
       <Text style={styles.metricLabel}>{label}</Text>
       <Text style={styles.metricValue}>{value}</Text>
-      {sub ? <Text style={styles.metricSub}>{sub}</Text> : null}
     </View>
   );
 }
@@ -51,7 +47,7 @@ export default function CellSheet({ visible, h3index, visitedSet, accent, onClos
   }, [visible, h3index]);
 
   const [lat, lng] = h3index ? cellToCenter(h3index) : [0, 0];
-  const date = formatDate(cell?.first_photo_date ?? null);
+  const dateStr = formatDate(cell?.first_photo_date ?? null);
   const flag = cell?.country_code ? codeToFlag(cell.country_code) : '';
   const placeName = cell?.place_name ?? `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`;
 
@@ -79,9 +75,9 @@ export default function CellSheet({ visible, h3index, visitedSet, accent, onClos
 
       {/* metric strip */}
       <View style={styles.metrics}>
-        <Metric label="FIRST PHOTO" value={date.main} sub={date.sub} />
+        <Metric label="FIRST PHOTO" value={dateStr} />
         <Metric label="PHOTOS" value={(cell?.photo_count ?? 0).toLocaleString()} />
-        <Metric label="COORDS" value={`${lat.toFixed(2)}°`} sub={`${lng.toFixed(2)}°`} />
+        <Metric label="COORDS" value={`${lat.toFixed(2)}°, ${lng.toFixed(2)}°`} />
       </View>
 
       {/* photo strip */}
@@ -153,11 +149,5 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
     color: '#0E0E0C',
     marginTop: 4,
-  },
-  metricSub: {
-    fontFamily: 'ui-monospace',
-    fontSize: 11.5,
-    color: 'rgba(14,14,12,0.5)',
-    marginTop: 1,
   },
 });

@@ -23,8 +23,8 @@ export default function TopBar({ zoom, onShare, onRecenter }: Props) {
       <View style={styles.gradient} pointerEvents="none" />
 
       {/* app bar row */}
-      <View style={[styles.bar, { top: insets.top + 8 }]}>
-        <View>
+      <View style={[styles.bar, { top: insets.top + 8 }]} pointerEvents="box-none">
+        <View pointerEvents="none">
           <Text style={styles.eyebrow}>WORLD COVERAGE</Text>
           <Text style={styles.title}>HexPlore</Text>
         </View>
