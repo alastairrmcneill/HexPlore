@@ -39,7 +39,10 @@ export default function EmptyCellSheet({
           />
         ) : null}
         <View style={styles.identityText}>
-          {flag ? <Text style={styles.countryLabel}>{flag}  {countryCode}</Text> : null}
+          <View style={styles.countryRow}>
+            {flag ? <Text style={styles.flagEmoji}>{flag}</Text> : null}
+            {countryCode ? <Text style={styles.countryLabel}>{countryCode}</Text> : null}
+          </View>
           <Text style={styles.coords}>{lat.toFixed(4)}°, {lng.toFixed(4)}°</Text>
           <Text style={styles.unvisited}>Not yet visited</Text>
         </View>
@@ -68,6 +71,14 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 4,
     gap: 4,
+  },
+  countryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  flagEmoji: {
+    fontSize: 22,
   },
   countryLabel: {
     fontFamily: 'ui-monospace',

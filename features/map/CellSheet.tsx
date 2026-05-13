@@ -68,9 +68,10 @@ export default function CellSheet({ visible, h3index, visitedSet, accent, onClos
           />
         ) : null}
         <View style={styles.identityText}>
-          <Text style={styles.countryLabel}>
-            {flag ? `${flag}  ` : ''}{(cell?.country ?? '').toUpperCase()}
-          </Text>
+          <View style={styles.countryRow}>
+            {flag ? <Text style={styles.flagEmoji}>{flag}</Text> : null}
+            <Text style={styles.countryLabel}>{(cell?.country ?? '').toUpperCase()}</Text>
+          </View>
           <Text style={styles.placeName} numberOfLines={2}>{placeName}</Text>
           {cell?.region ? <Text style={styles.region}>{cell.region}</Text> : null}
         </View>
@@ -100,6 +101,15 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     marginTop: 4,
+  },
+  countryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  flagEmoji: {
+    fontSize: 22,
   },
   countryLabel: {
     fontFamily: 'ui-monospace',

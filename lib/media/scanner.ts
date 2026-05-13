@@ -40,7 +40,7 @@ export async function scanCameraRoll(
         // h3-js v3 API
         const h3index = (h3 as any).geoToH3(latitude, longitude, 4);
         visitedIndices.add(h3index);
-        await upsertCell(h3index, asset.creationTime * 1000);
+        await upsertCell(h3index, asset.creationTime);
         await insertCellPhoto(h3index, asset.id);
       }
 
