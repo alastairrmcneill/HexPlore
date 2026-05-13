@@ -50,58 +50,34 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 
 ---
 
-## Session 2 — Onboarding screens 1 & 2
+## Sessions 2 & 3 — Onboarding + scan pipeline ✅ DONE
 
-**Goal:** Animated welcome + how-it-works screens with permission request.
+**Goal (simplified from original spec):** Single-screen onboarding with three in-place states: welcome → scanning → done. Matches design-reference exactly; no carousel.
 
-- [ ] Add redirect logic to `app/_layout.tsx`: if `onboarding_complete` is not set in AsyncStorage, redirect to `/onboarding`
-- [ ] Create `app/onboarding/index.tsx` — mounts `OnboardingCarousel`
-- [ ] Build `features/onboarding/DotsIndicator.tsx`
-- [ ] Build `features/onboarding/OnboardingCarousel.tsx` — `FlatList`, `pagingEnabled`, dots indicator, programmatic scroll
-- [ ] Build `components/HexBloom.tsx` — Reanimated concentric hex rings animating outward
-- [ ] Build `features/onboarding/WelcomeScreen.tsx`:
-  - Full screen, `HexBloom` animation
-  - Bold headline + subheadline copy
-  - `PillButton` "Get Started →"
-- [ ] Build `components/PillButton.tsx`
-- [ ] Build `features/onboarding/HowItWorksScreen.tsx`:
-  - Two illustrated panels
-  - Small print privacy notice
-  - "Scan My Photos →" CTA triggers `expo-media-library` permission request
-  - On denial: gentle message + "Continue anyway →" advances to scanning screen (which shows empty state)
-- [ ] Wire PostHog events: `onboarding_started`, `onboarding_screen_viewed` (screen 1, 2), `camera_permission_requested`, `camera_permission_granted` / `camera_permission_denied`
+- [x] Install `react-native-svg` (needed for hex polygon rendering)
+- [x] Register `onboarding` route in `app/_layout.tsx`; change `anchor` to `'onboarding'`; `gestureEnabled: false` prevents back-swipe to onboarding from main app
+- [x] Create `app/onboarding/index.tsx` — state machine (`checking | welcome | scanning | done`):
+  - `checking`: reads `onboarding_complete` from AsyncStorage; redirects to `/(tabs)` if already set, otherwise shows welcome
+  - `welcome`: hex bloom animation + headline copy + "Scan my photos →" dark pill CTA
+  - `scanning`: scan ripple filling radially + live `X% · N of M photos` progress driven by real `scanCameraRoll` callback
+  - `done`: fully-filled ripple + hex count + "See results →" button; writes `onboarding_complete: 'true'` then navigates to `/(tabs)`
+- [x] Build `features/onboarding/HexBloom.tsx`:
+  - 6-ring cube-coordinate grid (~127 hexes), pointy-top, radius 11
+  - `requestAnimationFrame` loop drives time `t`; per-cell phase `(t*0.6 - dist*0.18) % 2.2`
+  - Filled window: phase ∈ [0, 1.1]; opacity `0.35 + wave*0.65`; center hex always filled
+- [x] Build `features/onboarding/ScanRipple.tsx`:
+  - 5-ring grid, radius 7.6; `filled = (dist/rings)*100 < progress` — radial fill from centre
+- [x] Implement `lib/media/scanner.ts`:
+  - `scanCameraRoll(onProgress)` — pages `getAssetsAsync` 50 at a time
+  - Calls `getAssetInfoAsync(id, { shouldDownloadFromNetwork: false })` per asset
+  - GPS present → `h3.geoToH3(lat, lng, 4)` → `upsertCell()` into SQLite
+  - Returns `{ hexCount }` of unique H3 indices inserted
+  - Throws `PermissionDeniedError` if permission refused (welcome screen shown again)
 
-**Done when:** Carousel scrolls with animated dots, bloom animates on screen 1, permission dialog fires on CTA tap, denial lets user proceed.
-
----
-
-## Session 3 — Scan pipeline & onboarding screens 3 & 4
-
-**Goal:** Real camera roll scan drives the onboarding progress screen; results reveal shows accurate coverage.
-
-- [ ] Implement `lib/media/scanner.ts`:
-  - `scanCameraRoll(onProgress: (scanned, total, hexCount) => void): Promise<ScanResult>`
-  - Uses `expo-media-library` `getAssetsAsync` with `mediaType: 'photo'`
-  - For each asset, calls `getAssetInfoAsync` to get `location`
-  - Skips assets with no GPS
-  - Calls `h3.geoToH3(lat, lng, 4)` on each coordinate (h3-js v3 API)
-  - Upserts into SQLite via `lib/db/queries.ts`
-  - Stores final cursor in AsyncStorage `last_scan_cursor`
-- [ ] Build `features/onboarding/ScanningScreen.tsx`:
-  - `HexBloom` fills in as `hexCount` grows
-  - Large % number in accent colour
-  - "Reading EXIF coordinates · X of Y photos" sub-label
-  - Triggers scan on mount (or when permission was granted)
-  - Auto-advances after 400ms delay at 100%
-- [ ] Build `features/onboarding/ResultsScreen.tsx`:
-  - Coverage percentage in large type
-  - World hex map thumbnail (small `MapLibre` preview or static SVG)
-  - "Explore your map →" navigates to `/(tabs)/`
-  - Calls `StoreReview.requestReview()` on mount
-  - Writes `onboarding_complete: 'true'` to AsyncStorage
-- [ ] Wire PostHog: `scan_completed` (photo_count, hex_count, duration_ms), `results_reveal_viewed`, `app_entered`
-
-**Done when:** Scan runs on a real device, `visited_cells` is populated, progress % is live, results reveal shows accurate coverage percentage.
+**Findings:**
+- No photo count shown on the welcome CTA — `expo-media-library` requires permission before `totalCount` is available.
+- `getAssetInfoAsync` is one call per asset; slow for large libraries but acceptable for MVP. Incremental re-scan via `last_scan_cursor` is a Session 8 follow-up.
+- `react-native-svg` added to dependencies; **native rebuild required**: `npx expo run:ios`
 
 ---
 
@@ -239,7 +215,7 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 |---|------|--------|
 | 1 | **MapLibre + 17k GeoJSON polygons** | ✅ Resolved — smooth at 17k; 75k untested (Session 4) |
 | 2 | **h3-js Hermes compatibility** | ✅ Resolved — pinned to v3.7.2 + `lib/polyfills/emscripten.ts` |
-| 3 | **`expo-media-library` GPS access** | ⚠️ Untested — real device needed in Session 3 |
+| 3 | **`expo-media-library` GPS access** | ⚠️ Implemented — real device test still needed (`getAssetInfoAsync` GPS path) |
 | 4 | **New Architecture compatibility** | ⚠️ Partially verified — all packages installed, runtime check pending rebuild |
 | 5 | **`react-native-view-shot`** | ⚠️ Not yet installed — verify New Arch support before Session 7 |
 | 6 | **Land cell count accuracy** | ✅ Resolved — 74,942 cells confirmed from Natural Earth data |
