@@ -1,11 +1,20 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SymbolView } from 'expo-symbols';
+import React, { useRef, useState } from 'react';
+import {
+  Animated,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
   zoom: number;
   onShare: () => void;
-  onRecenter: () => void;
+  onAdd: () => void;
 }
 
 function zoomLabel(zoom: number): string {
@@ -14,8 +23,34 @@ function zoomLabel(zoom: number): string {
   return 'LOCAL';
 }
 
-export default function TopBar({ zoom, onShare, onRecenter }: Props) {
+export default function TopBar({ zoom, onShare, onAdd }: Props) {
   const insets = useSafeAreaInsets();
+  const [menuVisible, setMenuVisible] = useState(false);
+  const anim = useRef(new Animated.Value(0)).current;
+
+  function openMenu() {
+    setMenuVisible(true);
+    Animated.spring(anim, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 280,
+      friction: 22,
+    }).start();
+  }
+
+  function closeMenu(then?: () => void) {
+    Animated.timing(anim, {
+      toValue: 0,
+      duration: 140,
+      useNativeDriver: true,
+    }).start(() => {
+      setMenuVisible(false);
+      then?.();
+    });
+  }
+
+  // Menu sits just below the button row; button row is at insets.top + 8, buttons are 38pt tall
+  const menuTop = insets.top + 8 + 38 + 6;
 
   return (
     <>
@@ -30,20 +65,68 @@ export default function TopBar({ zoom, onShare, onRecenter }: Props) {
         </View>
         <View style={styles.buttons}>
           <TouchableOpacity style={styles.glassBtn} onPress={onShare} activeOpacity={0.75}>
-            <Text style={styles.glassBtnLabel}>↗</Text>
+            <SymbolView name="square.and.arrow.up" size={18} tintColor="#0E0E0C" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.glassBtn} onPress={onRecenter} activeOpacity={0.75}>
-            <Text style={styles.glassBtnLabel}>⌖</Text>
+          <TouchableOpacity style={styles.glassBtn} onPress={openMenu} activeOpacity={0.75}>
+            <Text style={styles.glassBtnLabelLarge}>+</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* zoom indicator */}
-      <View style={[styles.zoomIndicator, { top: insets.top + 72 }]} pointerEvents="none">
+      <View style={[styles.zoomIndicator, { top: insets.top + 52 }]} pointerEvents="none">
         <Text style={styles.zoomText}>
           ZOOM {zoom.toFixed(2)}× · {zoomLabel(zoom)}
         </Text>
       </View>
+
+      {/* context menu */}
+      <Modal visible={menuVisible} transparent animationType="none" onRequestClose={() => closeMenu()}>
+        <TouchableWithoutFeedback onPress={() => closeMenu()}>
+          <View style={StyleSheet.absoluteFill} />
+        </TouchableWithoutFeedback>
+
+        <Animated.View
+          style={[
+            styles.menu,
+            { top: menuTop, right: 16 },
+            {
+              opacity: anim,
+              transform: [
+                {
+                  scale: anim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.82, 1],
+                  }),
+                },
+                {
+                  // nudge so it scales from the top-right corner
+                  translateX: anim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [9, 0],
+                  }),
+                },
+                {
+                  translateY: anim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-9, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+          pointerEvents="box-none"
+        >
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.5}
+            onPress={() => closeMenu(onAdd)}
+          >
+            <Text style={styles.menuItemLabel}>Scan photos again</Text>
+            <SymbolView name="camera" size={16} tintColor="rgba(14,14,12,0.45)" />
+          </TouchableOpacity>
+        </Animated.View>
+      </Modal>
     </>
   );
 }
@@ -55,7 +138,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 120,
-    // LinearGradient not available without expo-linear-gradient; approximate with solid fade
     backgroundColor: 'rgba(250,250,247,0.0)',
   },
   bar: {
@@ -98,10 +180,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 12,
   },
-  glassBtnLabel: {
-    fontSize: 17,
+  glassBtnLabelLarge: {
+    fontSize: 24,
+    fontWeight: '300',
     color: '#0E0E0C',
+    lineHeight: 28,
   },
+
   zoomIndicator: {
     position: 'absolute',
     left: 20,
@@ -111,5 +196,30 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     letterSpacing: 0.8,
     color: 'rgba(14,14,12,0.5)',
+  },
+
+  // context menu
+  menu: {
+    position: 'absolute',
+    width: 210,
+    backgroundColor: 'rgba(248,248,248,0.98)',
+    borderRadius: 13,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    height: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+  },
+  menuItemLabel: {
+    fontSize: 16,
+    color: '#0E0E0C',
+    letterSpacing: -0.2,
   },
 });

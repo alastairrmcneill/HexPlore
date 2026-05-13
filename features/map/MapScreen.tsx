@@ -1,6 +1,6 @@
 import '@/lib/polyfills/emscripten';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { NativeSyntheticEvent, StyleSheet, View } from 'react-native';
+import { Modal, NativeSyntheticEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Camera, Map } from '@maplibre/maplibre-react-native';
 import type { CameraRef, PressEvent, PressEventWithFeatures, ViewStateChangeEvent } from '@maplibre/maplibre-react-native';
 import ViewShot from 'react-native-view-shot';
@@ -10,6 +10,8 @@ import { landCellCount, landCellCountryMap, landCellIndices } from '@/lib/h3/lan
 import { latLngToCell } from '@/lib/h3/hexUtils';
 import { generateShareCard } from '@/features/share/generateShareCard';
 import { track } from '@/lib/analytics';
+import ScanRipple from '@/features/onboarding/ScanRipple';
+import { scanCameraRoll, PermissionDeniedError } from '@/lib/media/scanner';
 import ShareCard from '@/features/share/ShareCard';
 import GraticuleLayer from './GraticuleLayer';
 import HexLayer from './HexLayer';
@@ -46,6 +48,13 @@ export default function MapScreen({ onNavigateStats }: Props) {
   const [countryCount, setCountryCount] = useState(0);
   const [cellsLoaded, setCellsLoaded] = useState(false);
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
+
+  const [rescanPhase, setRescanPhase] = useState<null | 'scanning' | 'done'>(null);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanProcessed, setScanProcessed] = useState(0);
+  const [scanTotal, setScanTotal] = useState(0);
+  const [scanHexCount, setScanHexCount] = useState(0);
+  const rescanRef = useRef(false);
 
   const visitedSet = useMemo(() => new Set(visitedIndices), [visitedIndices]);
   const landSet = useMemo(() => new Set(landCellIndices), []);
@@ -102,8 +111,36 @@ export default function MapScreen({ onNavigateStats }: Props) {
     cameraRef.current?.zoomTo(Math.max(zoom - 1.5, 1), { duration: 250 });
   }, [zoom]);
 
-  const handleRecenter = useCallback(() => {
-    cameraRef.current?.flyTo({ center: INITIAL_CENTER, zoom: INITIAL_ZOOM, duration: 600 });
+  const handleRescan = useCallback(async () => {
+    if (rescanRef.current) return;
+    rescanRef.current = true;
+    setRescanPhase('scanning');
+    setScanProgress(0);
+    setScanProcessed(0);
+    setScanTotal(0);
+
+    try {
+      const result = await scanCameraRoll((proc, tot) => {
+        setScanProcessed(proc);
+        setScanTotal(tot);
+        setScanProgress(tot > 0 ? (proc / tot) * 100 : 0);
+      });
+      setScanHexCount(result.hexCount);
+      setScanProgress(100);
+      setRescanPhase('done');
+      await loadCells();
+    } catch (e) {
+      if (!(e instanceof PermissionDeniedError)) {
+        // unexpected error — just dismiss
+      }
+      rescanRef.current = false;
+      setRescanPhase(null);
+    }
+  }, [loadCells]);
+
+  const handleRescanDismiss = useCallback(() => {
+    rescanRef.current = false;
+    setRescanPhase(null);
   }, []);
 
   return (
@@ -131,7 +168,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
       <TopBar
         zoom={zoom}
         onShare={() => generateShareCard(viewShotRef)}
-        onRecenter={handleRecenter}
+        onAdd={handleRescan}
       />
 
       {/* Off-screen share card captured by ViewShot */}
@@ -172,6 +209,39 @@ export default function MapScreen({ onNavigateStats }: Props) {
       />
 
       <MapHint visible={cellsLoaded && visitedIndices.length === 0} />
+
+      <Modal visible={rescanPhase !== null} animationType="slide" transparent={false} statusBarTranslucent>
+        <View style={styles.rescanContainer}>
+          <ScanRipple accent={accent} progress={scanProgress} />
+          <View style={styles.scanText}>
+            {rescanPhase === 'scanning' ? (
+              <>
+                <Text style={styles.scanLabel}>SCANNING CAMERA ROLL</Text>
+                <Text style={[styles.scanPercent, { color: accent }]}>
+                  {Math.floor(scanProgress)}<Text style={[styles.scanPercentSign, { color: accent }]}>%</Text>
+                </Text>
+                <Text style={styles.scanDetail}>
+                  Reading EXIF coordinates · {scanProcessed.toLocaleString()} of {scanTotal.toLocaleString()} photos
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.scanLabel}>ALL DONE</Text>
+                <Text style={styles.doneHexCount}>
+                  {scanHexCount === 0 ? 'No new hexes found' : `${scanHexCount.toLocaleString()} hexes found`}
+                </Text>
+                <Text style={styles.scanDetail}>Your camera roll has been mapped.</Text>
+              </>
+            )}
+          </View>
+          {rescanPhase === 'done' && (
+            <TouchableOpacity style={styles.rescanCtaButton} onPress={handleRescanDismiss} activeOpacity={0.85}>
+              <Text style={styles.rescanCtaLabel}>Back to map</Text>
+              <Text style={styles.rescanCtaArrow}>→</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -181,5 +251,68 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -2000,
     left: 0,
+  },
+  rescanContainer: {
+    flex: 1,
+    backgroundColor: '#FAFAF7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+    padding: 40,
+  },
+  scanText: {
+    alignItems: 'center',
+  },
+  scanLabel: {
+    fontFamily: 'ui-monospace',
+    fontSize: 11,
+    letterSpacing: 2,
+    color: 'rgba(14,14,12,0.5)',
+    textTransform: 'uppercase',
+  },
+  scanPercent: {
+    fontFamily: 'ui-monospace',
+    fontSize: 32,
+    fontWeight: '500',
+    letterSpacing: -1,
+    marginTop: 8,
+  },
+  scanPercentSign: {
+    fontSize: 18,
+  },
+  scanDetail: {
+    fontSize: 13,
+    color: 'rgba(14,14,12,0.55)',
+    marginTop: 10,
+    textAlign: 'center',
+    maxWidth: 260,
+    lineHeight: 18,
+  },
+  doneHexCount: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#0E0E0C',
+    marginTop: 8,
+  },
+  rescanCtaButton: {
+    backgroundColor: '#0E0E0C',
+    borderRadius: 18,
+    paddingVertical: 17,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    alignSelf: 'stretch',
+    marginTop: 12,
+  },
+  rescanCtaLabel: {
+    color: '#FAFAF7',
+    fontSize: 16,
+    fontWeight: '500',
+    letterSpacing: -0.16,
+  },
+  rescanCtaArrow: {
+    color: '#FAFAF7',
+    fontSize: 18,
   },
 });
