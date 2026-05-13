@@ -7,6 +7,7 @@ import { useTheme } from '@/lib/theme/ThemeContext';
 import { getAllCells } from '@/lib/db/queries';
 import { landCellCount, landCellCountryMap } from '@/lib/h3/landCells';
 import { latLngToCell } from '@/lib/h3/hexUtils';
+import GraticuleLayer from './GraticuleLayer';
 import HexLayer from './HexLayer';
 import TopBar from './TopBar';
 import ZoomControls from './ZoomControls';
@@ -88,7 +89,9 @@ export default function MapScreen({ onNavigateStats }: Props) {
         <Camera
           ref={cameraRef}
           initialViewState={{ center: INITIAL_CENTER, zoom: INITIAL_ZOOM }}
+          minZoom={1}
         />
+        <GraticuleLayer zoom={zoom} />
         <HexLayer visitedIndices={visitedIndices} accent={accent} />
       </Map>
 
