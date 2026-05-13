@@ -1,7 +1,7 @@
 import '@/lib/polyfills/emscripten';
 import * as MediaLibrary from 'expo-media-library';
 import * as h3 from 'h3-js';
-import { upsertCell } from '@/lib/db/queries';
+import { upsertCell, insertCellPhoto } from '@/lib/db/queries';
 
 export class PermissionDeniedError extends Error {}
 
@@ -41,6 +41,7 @@ export async function scanCameraRoll(
         const h3index = (h3 as any).geoToH3(latitude, longitude, 4);
         visitedIndices.add(h3index);
         await upsertCell(h3index, asset.creationTime * 1000);
+        await insertCellPhoto(h3index, asset.id);
       }
 
       processed++;

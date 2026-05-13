@@ -85,6 +85,23 @@ export async function getCellCountByCountry(): Promise<
   );
 }
 
+export async function insertCellPhoto(h3index: string, assetId: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'INSERT OR IGNORE INTO cell_photos (h3index, asset_id) VALUES (?, ?)',
+    [h3index, assetId],
+  );
+}
+
+export async function getPhotoIdsByCell(h3index: string): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ asset_id: string }>(
+    'SELECT asset_id FROM cell_photos WHERE h3index = ? LIMIT 20',
+    [h3index],
+  );
+  return rows.map(r => r.asset_id);
+}
+
 export async function getCellsGroupedByYear(): Promise<
   { year: number; count: number }[]
 > {
