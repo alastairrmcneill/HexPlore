@@ -189,6 +189,15 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 
 ---
 
+## Tab bar icons ✅ DONE
+
+- [x] Added Ionicons (`bar-chart-outline`, `settings-outline`) and MaterialCommunityIcons (`hexagon-outline`) to tab bar
+- [x] Icon + label inline (row layout), icon left of text
+- [x] Active: accent-coloured icon, white text, dark pill — inactive: grey icon, grey text
+- [x] `hexagon-outline` (MCI, size 16) for Map tab; Ionicons (size 15) for Stats and Settings
+
+---
+
 ## Session 8 — Polish & QA
 
 **Goal:** Full flow works end-to-end on a physical device, matches design reference visually.
