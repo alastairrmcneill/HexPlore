@@ -3,10 +3,13 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { NativeSyntheticEvent, StyleSheet, View } from 'react-native';
 import { Camera, Map } from '@maplibre/maplibre-react-native';
 import type { CameraRef, PressEvent, PressEventWithFeatures, ViewStateChangeEvent } from '@maplibre/maplibre-react-native';
+import ViewShot from 'react-native-view-shot';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { getAllCells, insertManualCell } from '@/lib/db/queries';
 import { landCellCount, landCellCountryMap, landCellIndices } from '@/lib/h3/landCells';
 import { latLngToCell } from '@/lib/h3/hexUtils';
+import { generateShareCard } from '@/features/share/generateShareCard';
+import ShareCard from '@/features/share/ShareCard';
 import GraticuleLayer from './GraticuleLayer';
 import HexLayer from './HexLayer';
 import TopBar from './TopBar';
@@ -33,6 +36,7 @@ interface Props {
 export default function MapScreen({ onNavigateStats }: Props) {
   const { accent } = useTheme();
   const cameraRef = useRef<CameraRef>(null);
+  const viewShotRef = useRef<ViewShot>(null);
 
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
   const [visitedIndices, setVisitedIndices] = useState<string[]>([]);
@@ -115,9 +119,19 @@ export default function MapScreen({ onNavigateStats }: Props) {
 
       <TopBar
         zoom={zoom}
-        onShare={() => {}}
+        onShare={() => generateShareCard(viewShotRef)}
         onRecenter={handleRecenter}
       />
+
+      {/* Off-screen share card captured by ViewShot */}
+      <ViewShot ref={viewShotRef} style={styles.offscreen} options={{ format: 'png', quality: 1 }}>
+        <ShareCard
+          worldPct={worldPct}
+          hexCount={visitedIndices.length}
+          countryCount={countryCount}
+          accent={accent}
+        />
+      </ViewShot>
 
       <ZoomControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} />
 
@@ -149,4 +163,10 @@ export default function MapScreen({ onNavigateStats }: Props) {
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  offscreen: {
+    position: 'absolute',
+    top: -2000,
+    left: 0,
+  },
+});

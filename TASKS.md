@@ -166,27 +166,26 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 
 ---
 
-## Session 7 — Settings & sharing
+## Session 7 — Settings & sharing ✅ DONE
 
 **Goal:** Settings screen fully functional; share card generates and opens native sheet.
 
-- [ ] Build `components/StatChip.tsx` and `components/FlagEmoji.tsx`
-- [ ] Build `features/settings/SettingsRow.tsx` — iOS-style list row
-- [ ] Build `features/settings/AccentColourPicker.tsx`:
-  - 6 preset swatches from `constants/colours.ts`
-  - Tapping a swatch writes to AsyncStorage + updates `ThemeContext`
-  - Active swatch shows checkmark
-- [ ] Build `features/settings/PrivacyPolicyModal.tsx` — inline scrollable text
-- [ ] Build `features/settings/SettingsScreen.tsx` — all four sections
-- [ ] Add `react-native-view-shot` for share card snapshot
-- [ ] Implement `features/share/generateShareCard.ts`:
-  - Renders an off-screen view with map thumbnail, `X.XX%`, HexPlore branding, counts
-  - Captures with `react-native-view-shot`
-  - Opens `react-native-share` native sheet
-- [ ] Build `features/share/ShareButton.tsx` — wires into `TopBar`
-- [ ] Wire PostHog: `settings_viewed`, `accent_colour_changed` (colour), `share_initiated`, `share_completed`
+- [x] Build `features/settings/SettingsRow.tsx` — iOS-style list row with optional value + chevron
+- [x] Build `features/settings/AccentColourPicker.tsx` — 6 swatches from `constants/colours.ts`; active swatch shows ✓; tapping calls `setAccent` via ThemeContext
+- [x] Build `features/settings/PrivacyPolicyModal.tsx` — `pageSheet` modal with scrollable privacy text
+- [x] Build `features/settings/SettingsScreen.tsx` — 4 sections: Appearance (colour picker), Account (coming soon), Feedback (Rate + Contact), Legal (About + Privacy Policy)
+- [x] Add `react-native-view-shot` for share card snapshot
+- [x] Build `features/share/ShareCard.tsx` — off-screen card: branding, large %, hexes + countries stat row
+- [x] Implement `features/share/generateShareCard.ts` — captures ViewShot ref → opens `react-native-share` native sheet
+- [x] Wired share button in `MapScreen` — ViewShot wraps ShareCard positioned at `top: -2000`; TopBar `onShare` triggers capture + share
+- [ ] Wire PostHog: `settings_viewed`, `accent_colour_changed` (colour), `share_initiated`, `share_completed` — deferred to Session 8
 
-**Done when:** Colour picker changes accent throughout the app immediately; share sheet opens with a generated image card; all Settings rows are tappable and functional.
+**Findings:**
+- `react-native-view-shot` requires a native rebuild (`npx expo run:ios`) before the share button will work on device.
+- Share card omits the live map thumbnail (capturing a native MapLibre view via ViewShot is unreliable); the card uses stats + branding instead.
+- `StatChip` and `FlagEmoji` helper components skipped — no current consumer after InsightCards was removed.
+- Account section removed from Settings (never shipping).
+- AccentColourPicker: swatch labels removed; `justifyContent: 'space-evenly'` distributes all 6 circles uniformly in one row — `flex: 1` on wrappers did not work because the container didn't fill width as expected.
 
 ---
 
