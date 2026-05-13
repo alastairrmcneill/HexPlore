@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BottomSheet from '@/components/BottomSheet';
 import { cellToCenter } from '@/lib/h3/hexUtils';
 import { landCellCountryMap } from '@/lib/h3/landCells';
+import { COUNTRY_NAMES } from '@/constants/countryNames';
 import HexNeighborThumbnail from './HexNeighborThumbnail';
 
 interface Props {
@@ -25,6 +26,7 @@ export default function EmptyCellSheet({
 }: Props) {
   const [lat, lng] = h3index ? cellToCenter(h3index) : [0, 0];
   const countryCode = h3index ? landCellCountryMap.get(h3index) ?? '' : '';
+  const countryName = countryCode ? (COUNTRY_NAMES[countryCode] ?? countryCode) : '';
   const flag = countryCode ? codeToFlag(countryCode) : '';
 
   return (
@@ -41,7 +43,7 @@ export default function EmptyCellSheet({
         <View style={styles.identityText}>
           <View style={styles.countryRow}>
             {flag ? <Text style={styles.flagEmoji}>{flag}</Text> : null}
-            {countryCode ? <Text style={styles.countryLabel}>{countryCode}</Text> : null}
+            {countryName ? <Text style={styles.countryLabel}>{countryName}</Text> : null}
           </View>
           <Text style={styles.coords}>{lat.toFixed(4)}°, {lng.toFixed(4)}°</Text>
           <Text style={styles.unvisited}>Not yet visited</Text>
