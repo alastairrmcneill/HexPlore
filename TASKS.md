@@ -144,22 +144,25 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 
 ---
 
-## Session 6 — Stats screen
+## Session 6 — Stats screen ✅ DONE
 
 **Goal:** Full Stats screen with real data from SQLite and land-cells.json.
 
-- [ ] Build `features/stats/HeroNumber.tsx` — large monospace `X.XX%`, subtitle with hex count and km² estimate
-- [ ] Build `features/stats/CountryList.tsx`:
-  - Queries `visited_cells` grouped by `country_code`
+- [x] Build `features/stats/HeroNumber.tsx` — large monospace `X.XX%` + `%` sign, subtitle with hex count and km² estimate (1,770 km²/cell)
+- [x] Build `features/stats/CountryList.tsx`:
+  - Derives country codes from `landCellCountryMap` (no geocoding dependency)
   - Joins against `landCellsByCountry` to compute % coverage
-  - Sorted ascending by % (most honest first)
-  - Each row: flag, country name, hex count, thin coverage bar
-- [ ] Build `features/stats/BraggingShelf.tsx` — horizontal scroll: Total Hexes, Countries, Continents, Furthest from Home
-- [ ] Build `features/stats/HexesPerYearChart.tsx` — vertical bar chart from `first_photo_date` grouped by year
-- [ ] Build `features/stats/InsightCards.tsx` — "Your patch" (most visited), "First hex ever", "Best explored country"
-- [ ] Build `features/stats/StatsScreen.tsx` — composes all sub-components in a `ScrollView`
+  - Sorted descending by % (highest coverage first)
+  - Each row: flag, full country name, hex count, thin coverage bar
+- [x] Build `features/stats/BraggingShelf.tsx` — 3-card fixed row (Total Hexes, Countries, Continents); each card `flex: 1` for even width
+- [x] Build `features/stats/HexesPerYearChart.tsx` — vertical bar chart from `getCellsGroupedByYear()`
+- [x] Build `features/stats/StatsScreen.tsx` — composes all sub-components in a `ScrollView`
+- [x] `constants/countryContinent.ts` — 232-entry ISO code → continent map generated from Natural Earth
 
-**Done when:** All sections render with real data; country list is sorted correctly; hero % matches map screen %.
+**Findings:**
+- InsightCards section removed at user request — country list is the last item.
+- Country stats derived from `landCellCountryMap` (h3index → ISO code) rather than geocoded `country_code` column in `visited_cells`, since geocoding is async and many cells won't be geocoded yet at stats-view time.
+- Hero `%` sign alignment: `alignItems: 'flex-end'` + `marginBottom: 14` on the `%` text compensates for the large number's oversized `lineHeight` making its glyph sit higher than the text box bottom.
 
 ---
 
