@@ -2,13 +2,13 @@ import '@/lib/polyfills/emscripten';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, NativeSyntheticEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Camera, Map } from '@maplibre/maplibre-react-native';
-import type { CameraRef, PressEvent, PressEventWithFeatures, ViewStateChangeEvent } from '@maplibre/maplibre-react-native';
+import type { CameraRef, MapRef, PressEvent, PressEventWithFeatures, ViewStateChangeEvent } from '@maplibre/maplibre-react-native';
 import ViewShot from 'react-native-view-shot';
+import Share from 'react-native-share';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { getAllCells, insertManualCell } from '@/lib/db/queries';
 import { landCellCount, landCellCountryMap, landCellIndices } from '@/lib/h3/landCells';
 import { latLngToCell } from '@/lib/h3/hexUtils';
-import { generateShareCard } from '@/features/share/generateShareCard';
 import { track } from '@/lib/analytics';
 import ScanRipple from '@/features/onboarding/ScanRipple';
 import { scanCameraRoll, PermissionDeniedError } from '@/lib/media/scanner';
@@ -40,7 +40,9 @@ interface Props {
 export default function MapScreen({ onNavigateStats }: Props) {
   const { accent } = useTheme();
   const cameraRef = useRef<CameraRef>(null);
+  const mapRef = useRef<MapRef>(null);
   const viewShotRef = useRef<ViewShot>(null);
+  const sharingRef = useRef(false);
 
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
   const [visitedIndices, setVisitedIndices] = useState<string[]>([]);
@@ -48,6 +50,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
   const [countryCount, setCountryCount] = useState(0);
   const [cellsLoaded, setCellsLoaded] = useState(false);
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
+  const [shareMapUri, setShareMapUri] = useState<string | null>(null);
 
   const [rescanPhase, setRescanPhase] = useState<null | 'scanning' | 'done'>(null);
   const [scanProgress, setScanProgress] = useState(0);
@@ -111,6 +114,38 @@ export default function MapScreen({ onNavigateStats }: Props) {
     cameraRef.current?.zoomTo(Math.max(zoom - 1.5, 1), { duration: 250 });
   }, [zoom]);
 
+  const handleShare = useCallback(async () => {
+    if (sharingRef.current) return;
+    sharingRef.current = true;
+    track('share_initiated');
+
+    try {
+      const rawUri = await mapRef.current?.createStaticMapImage({ output: 'file' });
+      if (!rawUri) return;
+
+      const mapUri = rawUri.startsWith('file://') ? rawUri : `file://${rawUri}`;
+      setShareMapUri(mapUri);
+
+      // wait for ShareCard to re-render with the map image
+      await new Promise<void>(r => setTimeout(r, 150));
+
+      const cardUri = await viewShotRef.current?.capture?.();
+      if (!cardUri) return;
+
+      await Share.open({
+        url: cardUri.startsWith('file://') ? cardUri : `file://${cardUri}`,
+        type: 'image/png',
+        failOnCancel: false,
+      });
+      track('share_completed');
+    } catch {
+      // user cancelled or capture failed — silent
+    } finally {
+      sharingRef.current = false;
+      setShareMapUri(null);
+    }
+  }, []);
+
   const handleRescan = useCallback(async () => {
     if (rescanRef.current) return;
     rescanRef.current = true;
@@ -146,6 +181,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
   return (
     <View style={StyleSheet.absoluteFill}>
       <Map
+        ref={mapRef}
         style={StyleSheet.absoluteFill}
         mapStyle={MAP_STYLE}
         onRegionDidChange={handleRegionChange}
@@ -167,13 +203,14 @@ export default function MapScreen({ onNavigateStats }: Props) {
 
       <TopBar
         zoom={zoom}
-        onShare={() => generateShareCard(viewShotRef)}
+        onShare={handleShare}
         onAdd={handleRescan}
       />
 
-      {/* Off-screen share card captured by ViewShot */}
+      {/* Off-screen share card — map image is injected before capture */}
       <ViewShot ref={viewShotRef} style={styles.offscreen} options={{ format: 'png', quality: 1 }}>
         <ShareCard
+          mapImageUri={shareMapUri}
           worldPct={worldPct}
           hexCount={visitedIndices.length}
           countryCount={countryCount}

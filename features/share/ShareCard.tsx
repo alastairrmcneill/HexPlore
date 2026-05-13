@@ -1,48 +1,44 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
+
+const CARD_WIDTH = 390;
+const CARD_HEIGHT = 520;
 
 interface Props {
+  mapImageUri: string | null;
   worldPct: number;
   hexCount: number;
   countryCount: number;
   accent: string;
 }
 
-export default function ShareCard({ worldPct, hexCount, countryCount, accent }: Props) {
+export default function ShareCard({ mapImageUri, worldPct, hexCount, countryCount, accent }: Props) {
   const year = new Date().getFullYear();
 
   return (
     <View style={styles.card}>
-      {/* header */}
-      <View style={styles.header}>
-        <Text style={styles.brandLabel}>HEXPLORE · {year}</Text>
-      </View>
+      {mapImageUri ? (
+        <Image source={{ uri: mapImageUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+      ) : (
+        <View style={[StyleSheet.absoluteFill, styles.mapFallback]} />
+      )}
 
-      {/* hero % */}
-      <View style={styles.hero}>
+      <View style={styles.overlay}>
+        <Text style={styles.brand}>HEXPLORE · {year}</Text>
+
         <View style={styles.pctRow}>
           <Text style={[styles.pctNumber, { color: accent }]}>{worldPct.toFixed(2)}</Text>
           <Text style={[styles.pctSign, { color: accent }]}>%</Text>
         </View>
         <Text style={styles.pctSub}>of Earth's land visited</Text>
-      </View>
 
-      {/* stats row */}
-      <View style={styles.statsRow}>
-        <View style={styles.stat}>
-          <Text style={[styles.statValue, { color: accent }]}>{hexCount.toLocaleString()}</Text>
-          <Text style={styles.statLabel}>HEXES</Text>
+        <View style={styles.statsRow}>
+          <Text style={styles.stat}>{hexCount.toLocaleString()} hexes</Text>
+          <Text style={styles.statDot}>·</Text>
+          <Text style={styles.stat}>{countryCount} countries</Text>
         </View>
-        <View style={styles.statDivider} />
-        <View style={styles.stat}>
-          <Text style={[styles.statValue, { color: accent }]}>{countryCount}</Text>
-          <Text style={styles.statLabel}>COUNTRIES</Text>
-        </View>
-      </View>
 
-      {/* footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>hexplore.app</Text>
+        <Text style={styles.footer}>hexplore.app</Text>
       </View>
     </View>
   );
@@ -50,85 +46,76 @@ export default function ShareCard({ worldPct, hexCount, countryCount, accent }: 
 
 const styles = StyleSheet.create({
   card: {
-    width: 320,
-    backgroundColor: '#FAFAF7',
-    borderRadius: 24,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    backgroundColor: '#0E0E0C',
     overflow: 'hidden',
-    padding: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(14,14,12,0.08)',
   },
-  header: {
-    marginBottom: 32,
+  mapFallback: {
+    backgroundColor: '#1A1A18',
   },
-  brandLabel: {
+  overlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(10,10,9,0.88)',
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    paddingBottom: 28,
+  },
+  brand: {
     fontFamily: 'ui-monospace',
-    fontSize: 10,
-    letterSpacing: 2.4,
-    color: 'rgba(14,14,12,0.4)',
-  },
-  hero: {
-    marginBottom: 36,
+    fontSize: 9,
+    letterSpacing: 2.2,
+    color: 'rgba(250,250,247,0.4)',
+    textTransform: 'uppercase',
+    marginBottom: 10,
   },
   pctRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 4,
+    gap: 3,
   },
   pctNumber: {
     fontFamily: 'ui-monospace',
-    fontSize: 72,
+    fontSize: 56,
     fontWeight: '500',
     letterSpacing: -2,
-    lineHeight: 80,
+    lineHeight: 60,
   },
   pctSign: {
     fontFamily: 'ui-monospace',
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '500',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   pctSub: {
-    fontSize: 15,
-    color: 'rgba(14,14,12,0.5)',
-    marginTop: 6,
+    fontSize: 13.5,
+    color: 'rgba(250,250,247,0.5)',
+    marginTop: 4,
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 32,
+    gap: 8,
+    marginTop: 12,
   },
   stat: {
-    flex: 1,
-  },
-  statValue: {
     fontFamily: 'ui-monospace',
-    fontSize: 28,
-    fontWeight: '500',
-    letterSpacing: -0.5,
+    fontSize: 12,
+    color: 'rgba(250,250,247,0.65)',
+    letterSpacing: 0.2,
   },
-  statLabel: {
-    fontFamily: 'ui-monospace',
-    fontSize: 10,
-    letterSpacing: 2,
-    color: 'rgba(14,14,12,0.4)',
-    marginTop: 2,
-  },
-  statDivider: {
-    width: 1,
-    height: 36,
-    backgroundColor: 'rgba(14,14,12,0.1)',
-    marginHorizontal: 20,
+  statDot: {
+    color: 'rgba(250,250,247,0.3)',
+    fontSize: 12,
   },
   footer: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(14,14,12,0.07)',
-    paddingTop: 16,
-  },
-  footerText: {
     fontFamily: 'ui-monospace',
-    fontSize: 11,
+    fontSize: 9,
     letterSpacing: 1.2,
-    color: 'rgba(14,14,12,0.3)',
+    color: 'rgba(250,250,247,0.25)',
+    marginTop: 12,
   },
 });
