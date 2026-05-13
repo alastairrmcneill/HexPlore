@@ -7,7 +7,7 @@ export class PermissionDeniedError extends Error {}
 
 export async function scanCameraRoll(
   onProgress: (processed: number, total: number) => void,
-): Promise<{ hexCount: number }> {
+): Promise<{ hexCount: number; photoCount: number }> {
   const { status } = await MediaLibrary.requestPermissionsAsync();
   if (status !== 'granted') {
     throw new PermissionDeniedError('Media library permission denied');
@@ -51,5 +51,5 @@ export async function scanCameraRoll(
     after = page.hasNextPage ? page.endCursor : undefined;
   } while (after !== undefined);
 
-  return { hexCount: visitedIndices.size };
+  return { hexCount: visitedIndices.size, photoCount: processed };
 }

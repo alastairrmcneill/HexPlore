@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Linking,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -12,6 +13,7 @@ import HexBloom from '@/features/onboarding/HexBloom';
 import ScanRipple from '@/features/onboarding/ScanRipple';
 import { scanCameraRoll, PermissionDeniedError } from '@/lib/media/scanner';
 import { useTheme } from '@/lib/theme/ThemeContext';
+import { track } from '@/lib/analytics';
 
 type Phase = 'welcome' | 'scanning' | 'done';
 
@@ -27,15 +29,26 @@ export default function OnboardingScreen() {
   const [processed, setProcessed] = useState(0);
   const [total, setTotal] = useState(0);
   const [hexCount, setHexCount] = useState(0);
+  const [permDenied, setPermDenied] = useState(false);
   const scanningRef = useRef(false);
+  const scanStartRef = useRef(0);
+
+  useEffect(() => {
+    track('onboarding_started');
+    track('onboarding_screen_viewed', { screen: 1 });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleScan() {
     if (scanningRef.current) return;
     scanningRef.current = true;
+    scanStartRef.current = Date.now();
     setPhase('scanning');
     setProgress(0);
     setProcessed(0);
     setTotal(0);
+    track('camera_permission_requested');
+    track('onboarding_screen_viewed', { screen: 2 });
 
     try {
       const result = await scanCameraRoll((proc, tot) => {
@@ -43,11 +56,17 @@ export default function OnboardingScreen() {
         setTotal(tot);
         setProgress(tot > 0 ? (proc / tot) * 100 : 0);
       });
+      const duration = Date.now() - scanStartRef.current;
+      track('camera_permission_granted');
+      track('scan_completed', { photo_count: result.photoCount, hex_count: result.hexCount, duration_ms: duration });
       setHexCount(result.hexCount);
       setProgress(100);
       setPhase('done');
+      track('onboarding_screen_viewed', { screen: 3 });
     } catch (e) {
       if (e instanceof PermissionDeniedError) {
+        track('camera_permission_denied');
+        setPermDenied(true);
         setPhase('welcome');
       }
       scanningRef.current = false;
@@ -55,6 +74,8 @@ export default function OnboardingScreen() {
   }
 
   async function handleSeeResults() {
+    track('results_reveal_viewed');
+    track('app_entered');
     await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
     router.replace('/(tabs)');
   }
@@ -76,6 +97,18 @@ export default function OnboardingScreen() {
               HexPlore reads the location of photos in your camera roll and fills in a hexagon for every 50{' '}km square you've visited. Nothing leaves your device.
             </Text>
           </View>
+
+          {permDenied && (
+            <View style={styles.permBanner}>
+              <Text style={styles.permBannerText}>
+                Photos access was denied. To enable it, go to{' '}
+                <Text style={styles.permBannerLink} onPress={() => Linking.openSettings()}>
+                  Settings → HexPlore → Photos
+                </Text>
+                .
+              </Text>
+            </View>
+          )}
 
           <View style={styles.ctaSection}>
             <TouchableOpacity style={styles.ctaButton} onPress={handleScan} activeOpacity={0.85}>
@@ -106,12 +139,24 @@ export default function OnboardingScreen() {
         <View style={[styles.scanContainer, { paddingHorizontal: 20 }]}>
           <ScanRipple accent={accent} progress={100} />
           <View style={styles.scanText}>
-            <Text style={styles.scanLabel}>ALL DONE</Text>
-            <Text style={styles.doneHexCount}>{hexCount.toLocaleString()} hexes found</Text>
-            <Text style={styles.scanDetail}>Your camera roll has been mapped.</Text>
+            {hexCount === 0 ? (
+              <>
+                <Text style={styles.scanLabel}>SCAN COMPLETE</Text>
+                <Text style={styles.doneHexCount}>No geotagged photos found</Text>
+                <Text style={styles.scanDetail}>
+                  Your photos may not have location data.{'\n'}You can mark hexes manually on the map.
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.scanLabel}>ALL DONE</Text>
+                <Text style={styles.doneHexCount}>{hexCount.toLocaleString()} hexes found</Text>
+                <Text style={styles.scanDetail}>Your camera roll has been mapped.</Text>
+              </>
+            )}
           </View>
           <TouchableOpacity style={[styles.ctaButton, { marginTop: 32 }]} onPress={handleSeeResults} activeOpacity={0.85}>
-            <Text style={styles.ctaLabel}>See results</Text>
+            <Text style={styles.ctaLabel}>{hexCount === 0 ? 'Explore the map' : 'See results'}</Text>
             <Text style={styles.ctaArrow}>→</Text>
           </TouchableOpacity>
         </View>
@@ -155,6 +200,25 @@ const styles = StyleSheet.create({
     fontSize: 15.5,
     lineHeight: 22.5,
     color: 'rgba(14,14,12,0.62)',
+  },
+  permBanner: {
+    marginHorizontal: 20,
+    marginBottom: 8,
+    backgroundColor: 'rgba(255,100,80,0.08)',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,100,80,0.18)',
+  },
+  permBannerText: {
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: 'rgba(14,14,12,0.72)',
+  },
+  permBannerLink: {
+    color: '#C94030',
+    fontWeight: '500',
   },
   ctaSection: {
     paddingHorizontal: 20,

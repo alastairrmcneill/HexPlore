@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ACCENT_COLOURS } from '@/constants/colours';
 import { useTheme } from '@/lib/theme/ThemeContext';
+import { track } from '@/lib/analytics';
 
 export default function AccentColourPicker() {
   const { accent, setAccent } = useTheme();
@@ -13,7 +14,7 @@ export default function AccentColourPicker() {
         return (
           <TouchableOpacity
             key={colour.hex}
-            onPress={() => setAccent(colour.hex)}
+            onPress={() => { setAccent(colour.hex); track('accent_colour_changed', { colour: colour.hex }); }}
             activeOpacity={0.75}
             style={styles.swatchWrap}
           >

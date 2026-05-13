@@ -9,6 +9,7 @@ import { getAllCells, insertManualCell } from '@/lib/db/queries';
 import { landCellCount, landCellCountryMap, landCellIndices } from '@/lib/h3/landCells';
 import { latLngToCell } from '@/lib/h3/hexUtils';
 import { generateShareCard } from '@/features/share/generateShareCard';
+import { track } from '@/lib/analytics';
 import ShareCard from '@/features/share/ShareCard';
 import GraticuleLayer from './GraticuleLayer';
 import HexLayer from './HexLayer';
@@ -17,6 +18,7 @@ import ZoomControls from './ZoomControls';
 import StatsBar from './StatsBar';
 import CellSheet from './CellSheet';
 import EmptyCellSheet from './EmptyCellSheet';
+import MapHint from './MapHint';
 
 const INITIAL_CENTER: [number, number] = [20, 30]; // [lng, lat]
 const INITIAL_ZOOM = 2.7;
@@ -42,6 +44,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
   const [visitedIndices, setVisitedIndices] = useState<string[]>([]);
   const [worldPct, setWorldPct] = useState(0);
   const [countryCount, setCountryCount] = useState(0);
+  const [cellsLoaded, setCellsLoaded] = useState(false);
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
 
   const visitedSet = useMemo(() => new Set(visitedIndices), [visitedIndices]);
@@ -54,9 +57,13 @@ export default function MapScreen({ onNavigateStats }: Props) {
     setWorldPct((indices.length / landCellCount) * 100);
     const countries = new Set(indices.map(idx => landCellCountryMap.get(idx)).filter(Boolean));
     setCountryCount(countries.size);
+    setCellsLoaded(true);
   }, []);
 
-  useEffect(() => { loadCells(); }, [loadCells]);
+  useEffect(() => {
+    loadCells();
+    track('map_viewed');
+  }, [loadCells]);
 
   const handleRegionChange = useCallback(
     (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
@@ -70,12 +77,16 @@ export default function MapScreen({ onNavigateStats }: Props) {
       const [lng, lat] = event.nativeEvent.lngLat;
       const cell = latLngToCell(lat, lng);
       if (!landSet.has(cell)) return;
-      setSelectedCell({ h3index: cell, type: visitedSet.has(cell) ? 'visited' : 'empty' });
+      const type = visitedSet.has(cell) ? 'visited' : 'empty';
+      const country = landCellCountryMap.get(cell);
+      track('cell_tapped', { source: type, country: country ?? null });
+      setSelectedCell({ h3index: cell, type });
     },
     [landSet, visitedSet],
   );
 
   const handleMarkVisited = useCallback(async (h3index: string) => {
+    track('cell_marked_manual');
     await insertManualCell(h3index);
     setSelectedCell(null);
     await loadCells();
@@ -159,6 +170,8 @@ export default function MapScreen({ onNavigateStats }: Props) {
         onClose={handleCloseSheet}
         onMarkVisited={handleMarkVisited}
       />
+
+      <MapHint visible={cellsLoaded && visitedIndices.length === 0} />
     </View>
   );
 }

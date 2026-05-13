@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from '@/lib/theme/ThemeContext';
 import { runMigrations } from '@/lib/db/migrations';
+import { initAnalytics } from '@/lib/analytics';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -12,6 +13,7 @@ export const unstable_settings = {
 export default function RootLayout() {
   useEffect(() => {
     runMigrations().catch(console.error);
+    initAnalytics().catch(console.error);
   }, []);
 
   return (

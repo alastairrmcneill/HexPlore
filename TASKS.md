@@ -210,10 +210,15 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
   - Border radii, font sizes, spacing
   - Tab bar pill highlight
   - Bottom sheet backdrop and snap behaviour
-- [ ] Implement empty states:
-  - No geotagged photos found during scan
-  - Map with zero visited cells (first launch)
-- [ ] Audit all PostHog events — confirm they fire at the right moments
+- [x] Implement empty states:
+  - `done` phase with 0 hexes: distinct copy ("No geotagged photos found") + "Explore the map →" CTA
+  - Camera roll permission denied: inline banner with "Open Settings" deep-link
+  - Map with zero visited cells: dismissable floating hint "Tap any hex to mark it as visited" (auto-hides once first cell added)
+- [x] Audit all PostHog events:
+  - Onboarding: `onboarding_started`, `onboarding_screen_viewed` (screens 1–3), `camera_permission_requested`, `camera_permission_granted/denied`, `scan_completed` (photo_count, hex_count, duration_ms), `results_reveal_viewed`, `app_entered`
+  - Engagement: `map_viewed`, `cell_tapped` (source, country), `cell_marked_manual`, `stats_viewed`, `share_initiated`, `share_completed`, `settings_viewed`, `accent_colour_changed`
+  - Initialised silently in `_layout.tsx` with a persistent anonymous UUID
+  - **PostHog API key placeholder** in `lib/analytics/index.ts` — replace `phc_REPLACE_WITH_YOUR_KEY` before shipping
 - [ ] Remove Session 0 throwaway spike screen (`app/(tabs)/index.tsx`)
 - [ ] Update Stats screen copy: "N hexes of 74,942 land cells" (not 59,400)
 - [ ] Final device run: no crashes through the full flow

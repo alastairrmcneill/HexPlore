@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as StoreReview from 'expo-store-review';
@@ -6,6 +6,7 @@ import Constants from 'expo-constants';
 import SettingsRow from './SettingsRow';
 import AccentColourPicker from './AccentColourPicker';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
+import { track } from '@/lib/analytics';
 
 const APP_VERSION = Constants.expoConfig?.version ?? '0.1';
 
@@ -20,6 +21,8 @@ function Section({ children }: { children: React.ReactNode }) {
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const [privacyVisible, setPrivacyVisible] = useState(false);
+
+  useEffect(() => { track('settings_viewed'); }, []);
 
   async function handleRate() {
     if (await StoreReview.hasAction()) {

@@ -7,6 +7,7 @@ import { landCellCount, landCellsByCountry, landCellCountryMap } from '@/lib/h3/
 import { COUNTRY_NAMES } from '@/constants/countryNames';
 import { COUNTRY_CONTINENT } from '@/constants/countryContinent';
 import { useTheme } from '@/lib/theme/ThemeContext';
+import { track } from '@/lib/analytics';
 import HeroNumber from './HeroNumber';
 import HexesPerYearChart from './HexesPerYearChart';
 import BraggingShelf from './BraggingShelf';
@@ -27,6 +28,8 @@ export default function StatsScreen() {
     setCells(allCells);
     setYearBars(years);
   }, []);
+
+  useEffect(() => { track('stats_viewed'); }, []);
 
   useEffect(() => { load(); }, [load]);
 

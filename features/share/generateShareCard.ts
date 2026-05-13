@@ -1,6 +1,7 @@
 import { RefObject } from 'react';
 import ViewShot from 'react-native-view-shot';
 import Share from 'react-native-share';
+import { track } from '@/lib/analytics';
 
 export async function generateShareCard(
   viewShotRef: RefObject<ViewShot | null>,
@@ -8,6 +9,7 @@ export async function generateShareCard(
   const ref = viewShotRef.current;
   if (!ref?.capture) return;
 
+  track('share_initiated');
   const uri = await ref.capture();
 
   await Share.open({
@@ -15,4 +17,5 @@ export async function generateShareCard(
     type: 'image/png',
     failOnCancel: false,
   });
+  track('share_completed');
 }
