@@ -83,30 +83,27 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 
 ---
 
-## Session 4 — Map screen core
+## Session 4 — Map screen core ✅ DONE
 
 **Goal:** Full-bleed map with both hex layers, overlay UI, and zoom controls.
 
-- [ ] Implement `lib/h3/hexUtils.ts` — v4-style wrappers (`latLngToCell`, `cellToBoundary`) over h3-js v3 API
-- [ ] Implement `lib/h3/geoUtils.ts`:
-  - `cellsToGeoJSON(cells: string[]): GeoJSON.FeatureCollection` — converts H3 indices to polygon features
-  - Each feature carries `h3index` in properties for tap identification
-- [ ] Implement `lib/h3/landCells.ts` — imports `assets/land-cells.json`, exports `landCellIndices: string[]`, `landCellCount: number`, `landCellsByCountry: Record<string, number>`
-- [ ] Build `features/map/HexLayer.tsx`:
-  - `GeoJSONSource` + `Layer` (fill) for land outline (grey stroke, transparent fill)
-  - `GeoJSONSource` + `Layer` (fill) for visited cells (accent colour fill)
-  - Land GeoJSON computed once on mount, cached with `useMemo`
-  - **Performance check**: if 75k land-outline polygons causes frame drops at world zoom, add `minzoom: 2` or `maxzoom` filter to hide at extreme zoom-out
-- [ ] Build `features/map/MapScreen.tsx`:
-  - Full-bleed `Map` with inline plain-background style
-  - Mounts `HexLayer`
-  - Handles tap events — identifies tapped H3 index, opens correct sheet
-- [ ] Build `features/map/TopBar.tsx`
-- [ ] Build `features/map/ZoomControls.tsx`
-- [ ] Build `features/map/StatsBar.tsx`
+- [x] Implement `lib/h3/hexUtils.ts` — `latLngToCell`, `cellToBoundaryLngLat` (antimeridian-safe), `cellToCenter` over h3-js v3 API
+- [x] Implement `lib/h3/geoUtils.ts` — `cellsToGeoJSON` (polygon FeatureCollection with `h3index` property)
+- [x] Implement `lib/h3/landCells.ts` — imports `assets/land-cells.json`; exports `landCellIndices`, `landCellCount`, `landCellsByCountry`, `landCellCountryMap`; `getLandGeoJSON()` with module-level cache
+- [x] Build `features/map/HexLayer.tsx` — land outline layer (grey stroke polygons) + visited fill layer (accent colour); land GeoJSON deferred with `setTimeout(0)` to avoid blocking first render
+- [x] Build `features/map/GraticuleLayer.tsx` — faint lat/lng grid as MapLibre line layer; 5° spacing below zoom 3, 2° above; memoised by zoom bucket, rendered below hex layers
+- [x] Build `features/map/MapScreen.tsx` — full-bleed `Map`; `touchRotate={false}`, `touchPitch={false}`; `minZoom={1}` to prevent world-wrap artefacts; mounts `GraticuleLayer` + `HexLayer`
+- [x] Build `features/map/TopBar.tsx` — WORLD COVERAGE label, HexPlore title, zoom indicator, Share + Recenter glass buttons
+- [x] Build `features/map/ZoomControls.tsx` — + / − buttons using `cameraRef.zoomTo()`
+- [x] Build `features/map/StatsBar.tsx` — world %, hex count, country count with tap-to-stats
+- [x] Replace Session 0 spike screen with `<MapScreen>` in `app/(tabs)/index.tsx`
+- [x] Add Stats and Settings placeholder tabs; custom floating pill `components/TabBar.tsx`
 - [ ] Wire PostHog: `map_viewed`
 
-**Done when:** Map renders both layers with correct colours, world coverage % shown in stats bar, zoom controls change zoom level.
+**Findings:**
+- Antimeridian bug: H3 cells near ±180° longitude produce vertices that jump ~360°, drawing lines across the globe. Fixed by unwrapping consecutive vertices that differ by >180° in `cellToBoundaryLngLat`.
+- `CameraRef` methods: `zoomTo(zoom, { duration })`, `flyTo({ center, zoom, duration })` — not `setCamera` or `easeTo` for zoom-only changes.
+- `minZoom={1}` on Camera prevents pinch-zooming past the world-wrap boundary where GeoJSON features stop rendering in secondary world tiles.
 
 ---
 
@@ -215,7 +212,7 @@ Each session is ~1 hour. **Start with Session 0** — it validates the riskiest 
 
 | # | Risk | Status |
 |---|------|--------|
-| 1 | **MapLibre + 17k GeoJSON polygons** | ✅ Resolved — smooth at 17k; 75k untested (Session 4) |
+| 1 | **MapLibre + 75k GeoJSON polygons** | ✅ Resolved — land outline layer (75k polygons) rendering smoothly |
 | 2 | **h3-js Hermes compatibility** | ✅ Resolved — pinned to v3.7.2 + `lib/polyfills/emscripten.ts` |
 | 3 | **`expo-media-library` GPS access** | ⚠️ Implemented — real device test still needed (`getAssetInfoAsync` GPS path) |
 | 4 | **New Architecture compatibility** | ⚠️ Partially verified — all packages installed, runtime check pending rebuild |
