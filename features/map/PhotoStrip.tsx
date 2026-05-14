@@ -1,37 +1,44 @@
-import React, { useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
-import * as MediaLibrary from 'expo-media-library';
-import { getPhotoIdsByCell } from '@/lib/db/queries';
+import { getPhotoIdsByCell } from "@/lib/db/queries";
+import * as MediaLibrary from "expo-media-library";
+import React, { useEffect, useState } from "react";
+import { FlatList, Image, StyleSheet, Text, View } from "react-native";
 
 interface Props {
   h3index: string;
 }
 
+const MAX_PHOTOS = 5;
+
 export default function PhotoStrip({ h3index }: Props) {
   const [uris, setUris] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     setUris([]);
+    setLoading(true);
 
     async function load() {
       const ids = await getPhotoIdsByCell(h3index);
-      const resolved: string[] = [];
-      for (const id of ids.slice(0, 12)) {
+      for (const id of ids.slice(0, MAX_PHOTOS)) {
+        if (cancelled) return;
         try {
           const info = await MediaLibrary.getAssetInfoAsync(id);
-          if (info.localUri) resolved.push(info.localUri);
+          if (info.localUri && !cancelled) {
+            setUris((prev) => [...prev, info.localUri!]);
+          }
         } catch {}
-        if (cancelled) return;
       }
-      if (!cancelled) setUris(resolved);
+      if (!cancelled) setLoading(false);
     }
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [h3index]);
 
-  if (uris.length === 0) return null;
+  if (!loading && uris.length === 0) return null;
 
   return (
     <View>
@@ -39,12 +46,11 @@ export default function PhotoStrip({ h3index }: Props) {
       <FlatList
         horizontal
         data={uris}
-        keyExtractor={uri => uri}
+        keyExtractor={(uri) => uri}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Image source={{ uri: item }} style={styles.thumb} />
-        )}
+        renderItem={({ item }) => <Image source={{ uri: item }} style={styles.thumb} />}
+        ListFooterComponent={loading ? <View style={styles.placeholder} /> : null}
       />
     </View>
   );
@@ -52,10 +58,10 @@ export default function PhotoStrip({ h3index }: Props) {
 
 const styles = StyleSheet.create({
   label: {
-    fontFamily: 'ui-monospace',
+    fontFamily: "ui-monospace",
     fontSize: 10.5,
     letterSpacing: 2,
-    color: 'rgba(14,14,12,0.5)',
+    color: "rgba(14,14,12,0.5)",
     marginBottom: 8,
   },
   list: {
@@ -66,6 +72,12 @@ const styles = StyleSheet.create({
     width: 92,
     height: 110,
     borderRadius: 12,
-    backgroundColor: 'rgba(14,14,12,0.06)',
+    backgroundColor: "rgba(14,14,12,0.06)",
+  },
+  placeholder: {
+    width: 92,
+    height: 110,
+    borderRadius: 12,
+    backgroundColor: "rgba(14,14,12,0.06)",
   },
 });

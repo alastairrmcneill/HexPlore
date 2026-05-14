@@ -5,7 +5,7 @@ import { getAllCells, insertManualCell } from "@/lib/db/queries";
 import { getCountryCentroid, getMostVisitedCountry } from "@/lib/h3/countryUtils";
 import { latLngToCell } from "@/lib/h3/hexUtils";
 import { landCellCount, landCellCountryMap, landCellIndices } from "@/lib/h3/landCells";
-import { PermissionDeniedError, scanCameraRoll } from "@/lib/media/scanner";
+import { LAST_SCAN_KEY, PermissionDeniedError, scanCameraRoll } from "@/lib/media/scanner";
 import "@/lib/polyfills/emscripten";
 import { useTheme } from "@/lib/theme/ThemeContext";
 import type {
@@ -123,8 +123,9 @@ export default function MapScreen({ onNavigateStats }: Props) {
     (event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>) => {
       const [lng, lat] = event.nativeEvent.lngLat;
       const cell = latLngToCell(lat, lng);
-      if (!landSet.has(cell)) return;
-      const type = visitedSet.has(cell) ? "visited" : "empty";
+      const isVisited = visitedSet.has(cell);
+      if (!isVisited && !landSet.has(cell)) return;
+      const type = isVisited ? "visited" : "empty";
       const country = landCellCountryMap.get(cell);
       track("cell_tapped", { source: type, country: country ?? null });
       setSelectedCell({ h3index: cell, type });
@@ -211,11 +212,15 @@ export default function MapScreen({ onNavigateStats }: Props) {
     setScanTotal(0);
 
     try {
+      const rescanStart = Date.now();
+      const lastScanStr = await AsyncStorage.getItem(LAST_SCAN_KEY);
+      const sinceMs = lastScanStr ? Number(lastScanStr) : undefined;
       const result = await scanCameraRoll((proc, tot) => {
         setScanProcessed(proc);
         setScanTotal(tot);
         setScanProgress(tot > 0 ? (proc / tot) * 100 : 0);
-      });
+      }, sinceMs);
+      await AsyncStorage.setItem(LAST_SCAN_KEY, String(rescanStart));
       setScanHexCount(result.hexCount);
       setScanProgress(100);
       setRescanPhase("done");

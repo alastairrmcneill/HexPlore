@@ -1,11 +1,11 @@
-import { getDb } from './client';
+import { getDb } from "./client";
 
 export type VisitedCell = {
   h3index: string;
   first_photo_date: number | null;
   last_photo_date: number | null;
   photo_count: number;
-  source: 'photo' | 'manual';
+  source: "photo" | "manual";
   place_name: string | null;
   region: string | null;
   country: string | null;
@@ -14,10 +14,7 @@ export type VisitedCell = {
   created_at: number;
 };
 
-export async function upsertCell(
-  h3index: string,
-  photoDateMs: number,
-): Promise<void> {
+export async function upsertCell(h3index: string, photoDateMs: number): Promise<void> {
   const db = await getDb();
   await db.runAsync(
     `INSERT INTO visited_cells (h3index, first_photo_date, last_photo_date, photo_count, source)
@@ -42,40 +39,28 @@ export async function insertManualCell(h3index: string): Promise<void> {
 
 export async function getAllCells(): Promise<VisitedCell[]> {
   const db = await getDb();
-  return db.getAllAsync<VisitedCell>('SELECT * FROM visited_cells');
+  return db.getAllAsync<VisitedCell>("SELECT * FROM visited_cells");
 }
 
 export async function getCellByIndex(h3index: string): Promise<VisitedCell | null> {
   const db = await getDb();
-  return db.getFirstAsync<VisitedCell>(
-    'SELECT * FROM visited_cells WHERE h3index = ?',
-    [h3index],
-  );
+  return db.getFirstAsync<VisitedCell>("SELECT * FROM visited_cells WHERE h3index = ?", [h3index]);
 }
 
 export async function updateGeocode(
   h3index: string,
-  fields: Pick<VisitedCell, 'place_name' | 'region' | 'country' | 'country_code'>,
+  fields: Pick<VisitedCell, "place_name" | "region" | "country" | "country_code">,
 ): Promise<void> {
   const db = await getDb();
   await db.runAsync(
     `UPDATE visited_cells
      SET place_name = ?, region = ?, country = ?, country_code = ?, geocoded_at = ?
      WHERE h3index = ?`,
-    [
-      fields.place_name,
-      fields.region,
-      fields.country,
-      fields.country_code,
-      Date.now(),
-      h3index,
-    ],
+    [fields.place_name, fields.region, fields.country, fields.country_code, Date.now(), h3index],
   );
 }
 
-export async function getCellCountByCountry(): Promise<
-  { country_code: string; count: number }[]
-> {
+export async function getCellCountByCountry(): Promise<{ country_code: string; count: number }[]> {
   const db = await getDb();
   return db.getAllAsync<{ country_code: string; count: number }>(
     `SELECT country_code, COUNT(*) as count
@@ -87,24 +72,19 @@ export async function getCellCountByCountry(): Promise<
 
 export async function insertCellPhoto(h3index: string, assetId: string): Promise<void> {
   const db = await getDb();
-  await db.runAsync(
-    'INSERT OR IGNORE INTO cell_photos (h3index, asset_id) VALUES (?, ?)',
-    [h3index, assetId],
-  );
+  await db.runAsync("INSERT OR IGNORE INTO cell_photos (h3index, asset_id) VALUES (?, ?)", [h3index, assetId]);
 }
 
 export async function getPhotoIdsByCell(h3index: string): Promise<string[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<{ asset_id: string }>(
-    'SELECT asset_id FROM cell_photos WHERE h3index = ? LIMIT 20',
+    "SELECT asset_id FROM cell_photos WHERE h3index = ? LIMIT 5",
     [h3index],
   );
-  return rows.map(r => r.asset_id);
+  return rows.map((r) => r.asset_id);
 }
 
-export async function getCellsGroupedByYear(): Promise<
-  { year: number; count: number }[]
-> {
+export async function getCellsGroupedByYear(): Promise<{ year: number; count: number }[]> {
   const db = await getDb();
   return db.getAllAsync<{ year: number; count: number }>(
     `SELECT strftime('%Y', first_photo_date / 1000, 'unixepoch') as year,
