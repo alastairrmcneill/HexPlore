@@ -22,7 +22,7 @@ function codeToFlag(code: string): string {
 
 function CountryRow({ stat, accent, isLast }: { stat: CountryStat; accent: string; isLast: boolean }) {
   const pct = stat.total > 0 ? (stat.visited / stat.total) * 100 : 0;
-  const barWidth = Math.min(100, pct * 4); // scale so even small % looks visible
+  const barWidth = pct;
 
   return (
     <View style={[styles.row, !isLast && styles.rowBorder]}>

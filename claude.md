@@ -113,7 +113,7 @@ Swipe-down-to-dismiss.
 Scrollable. Structure top to bottom:
 
 1. **Hero number** — `X.XX%` of world land in large monospace type, accent colour. Subtitle: "N hexes of 74,942 on Earth — about N km² covered"
-2. **Honest breakdown header** — small caps: "HOW MUCH YOU REALLY SAW". Country list sorted by **% of that country's land covered** (ascending — most honest first). Each row: flag, country name, hex count, % coverage as a thin bar + number.
+2. **Honest breakdown header** — small caps: "HOW MUCH YOU REALLY SAW". Country list sorted by **% of that country's land covered** (descending — highest coverage first). Each row: flag, country name, hex count, % coverage as a thin bar + number.
 3. **Bragging shelf** — horizontal scroll of stat cards: Total Hexes, Countries, Continents, Furthest from Home
 4. **Hexes per year** — vertical bar chart, one bar per year
 5. **Personal insights cards** — algorithmically surfaced: "Your patch" (most visited hex location), "First hex ever" (earliest photo date), "Best explored country" (highest % coverage)
