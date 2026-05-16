@@ -319,7 +319,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
                   <Text style={[styles.scanPercentSign, { color: accent }]}>%</Text>
                 </Text>
                 <Text style={styles.scanDetail}>
-                  Reading EXIF coordinates · {scanProcessed.toLocaleString()} of {scanTotal.toLocaleString()} photos
+                  Checking {scanProcessed.toLocaleString()} of {scanTotal.toLocaleString()} photos for location data
                 </Text>
               </>
             ) : (
