@@ -132,6 +132,10 @@
   "languages": {
     "auto": "Langue de l'appareil",
     "en": "English",
-    "fr": "Français"
+    "fr": "Français",
+    "es": "Español",
+    "de": "Deutsch",
+    "ar": "العربية",
+    "zh": "中文"
   }
 }

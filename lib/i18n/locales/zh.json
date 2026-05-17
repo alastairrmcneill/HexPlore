@@ -1,0 +1,141 @@
+{
+  "onboarding": {
+    "eyebrow": "HexPlore",
+    "headline": "看看你真正走遍了世界的多少地方。",
+    "body": "HexPlore 读取你照片中的位置信息，为你每访问过的 50 公里方格填充一个六边形。数据不会离开你的设备。",
+    "cta": "扫描我的照片",
+    "safetyNote": "照片数据保留在本设备上。",
+    "permDenied": {
+      "before": "照片访问权限被拒绝。请前往",
+      "link": "设置 → HexPlore → 照片",
+      "after": "来启用。"
+    },
+    "scanning": {
+      "label": "正在扫描相册",
+      "detail": "正在检查 {{processed}} / {{total}} 张照片"
+    },
+    "done": {
+      "labelDone": "完成",
+      "labelNoHexes": "扫描完成",
+      "hexesFound_one": "找到 {{count}} 个六边形",
+      "hexesFound_other": "找到 {{count}} 个六边形",
+      "noHexes": "未找到带位置信息的照片",
+      "detailMapped": "你的相册已完成映射。",
+      "detailNoHexes": "你的照片可能没有位置数据。\n你可以在地图上手动标记六边形。",
+      "ctaResults": "查看结果",
+      "ctaExplore": "探索地图"
+    }
+  },
+  "map": {
+    "topbar": {
+      "worldCoverage": "世界覆盖",
+      "scanAgain": "重新扫描照片",
+      "zoom": "缩放 {{zoom}}× · {{level}}"
+    },
+    "zoomLevel": {
+      "world": "全球",
+      "regional": "区域",
+      "local": "本地"
+    },
+    "rescan": {
+      "scanning": "正在扫描相册",
+      "done": "完成",
+      "detail": "正在检查 {{processed}} / {{total}} 张照片",
+      "mapped": "你的相册已完成映射。",
+      "backToMap": "返回地图",
+      "hexesFound_one": "找到 {{count}} 个六边形",
+      "hexesFound_other": "找到 {{count}} 个六边形",
+      "noNewHexes": "未发现新的六边形"
+    },
+    "stats": {
+      "worldCovered": "已覆盖",
+      "hexes": "六边形",
+      "countries": "国家 ›"
+    },
+    "cell": {
+      "firstPhoto": "首张照片",
+      "photos": "照片",
+      "coords": "坐标",
+      "locating": "定位中…"
+    },
+    "emptyCell": {
+      "notVisited": "尚未访问",
+      "markVisited": "标记为已访问"
+    },
+    "hint": "点击地图上的任意六边形将其标记为已访问",
+    "loading": "正在加载地图…"
+  },
+  "homeCountry": {
+    "eyebrow": "所在国家",
+    "title": "你的家乡在哪里？",
+    "subtitle": "每次启动应用时，地图将以你的国家为中心打开。",
+    "placeholder": "选择国家…",
+    "save": "保存",
+    "skip": "暂时跳过"
+  },
+  "stats": {
+    "worldCovered": "世界覆盖",
+    "hero": {
+      "subtitle": "地球上 {{total}} 个六边形中的 {{hexes}} 个  —  约 {{km2}} 平方公里。"
+    },
+    "hexesPerYear": "每年六边形数",
+    "bragging": {
+      "header": "你的数据",
+      "totalHexes": "六边形",
+      "countries": "国家",
+      "continents": "洲"
+    },
+    "countries": {
+      "label": "国家 · {{count}}",
+      "right": "六边形 · 覆盖率"
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "appearance": {
+      "header": "外观",
+      "accentColour": "强调色",
+      "language": "语言"
+    },
+    "location": {
+      "header": "位置",
+      "homeCountry": "所在国家",
+      "notSet": "未设置"
+    },
+    "feedback": {
+      "header": "反馈",
+      "rate": "评价 HexPlore",
+      "contact": "联系"
+    },
+    "legal": {
+      "header": "法律",
+      "about": "关于",
+      "privacy": "隐私政策"
+    },
+    "footer": "HexPlore · v{{version}}"
+  },
+  "privacy": {
+    "title": "隐私政策",
+    "done": "关闭",
+    "body": "HexPlore 以隐私为根本设计原则。\n\n所有处理均在您的设备上进行\nHexPlore 读取照片中嵌入的 GPS 坐标，以绘制您访问过的世界区域。此处理完全在您的设备上进行。您的照片、内容和位置信息绝不会上传、传输或共享给任何服务器或第三方。\n\n匿名使用分析\n为帮助我们改进应用，HexPlore 通过 PostHog 收集匿名使用事件。这些事件不包含任何个人信息。每次安装会被分配一个随机 ID，无法与您关联。您可以通过 hello@hexplore.app 联系我们退出。\n\n存储在您设备上的数据\nHexPlore 存储的唯一数据是代表您访问过地点的 H3 六边形单元格标识符列表，以及照片计数和日期。这些数据存储在本地 SQLite 数据库中，删除应用时会被清除。\n\n无账户，无云端\nHexPlore 没有用户账户、云同步或任何服务器端组件。没有需要登录的内容，也没有需要远程删除的内容。\n\n联系\n如有任何隐私问题，请发送邮件至 hello@hexplore.app。"
+  },
+  "share": {
+    "earthLand": "的陆地已访问",
+    "hexes": "{{count}} 个六边形",
+    "countries": "{{count}} 个国家"
+  },
+  "tabs": {
+    "map": "地图",
+    "stats": "统计",
+    "settings": "设置"
+  },
+  "languages": {
+    "auto": "跟随系统",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español",
+    "de": "Deutsch",
+    "ar": "العربية",
+    "zh": "中文"
+  }
+}

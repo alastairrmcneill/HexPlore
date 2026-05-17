@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { I18nManager, Alert } from 'react-native';
 import * as Localization from 'expo-localization';
 import i18n, { SUPPORTED_LOCALES, SupportedLocale } from './index';
 
@@ -29,12 +30,16 @@ function resolveLocale(lang: string | null | undefined): SupportedLocale {
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<SupportedLocale>(resolveLocale(null));
 
-  // On mount, check for a user-stored override
+  // On mount, check for a user-stored override and apply RTL if needed
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
       const resolved = resolveLocale(stored);
       setLocaleState(resolved);
       i18n.changeLanguage(resolved);
+      const needsRTL = resolved === 'ar';
+      if (I18nManager.isRTL !== needsRTL) {
+        I18nManager.forceRTL(needsRTL);
+      }
     });
   }, []);
 
@@ -46,6 +51,14 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
       AsyncStorage.setItem(STORAGE_KEY, lang);
     } else {
       AsyncStorage.removeItem(STORAGE_KEY);
+    }
+    const needsRTL = resolved === 'ar';
+    if (I18nManager.isRTL !== needsRTL) {
+      I18nManager.forceRTL(needsRTL);
+      Alert.alert(
+        'Restart required',
+        'Please close and reopen HexPlore to apply the new text direction.',
+      );
     }
   }, []);
 
