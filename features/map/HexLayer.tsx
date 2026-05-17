@@ -1,23 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GeoJSONSource, Layer } from '@maplibre/maplibre-react-native';
-import { getLandGeoJSON } from '@/lib/h3/landCells';
+import { getLandGeoJSONAsync } from '@/lib/h3/landCells';
 import { cellsToGeoJSON } from '@/lib/h3/geoUtils';
 
 interface Props {
   visitedIndices: string[];
   accent: string;
+  onReady?: () => void;
 }
 
-export default function HexLayer({ visitedIndices, accent }: Props) {
+export default function HexLayer({ visitedIndices, accent, onReady }: Props) {
   const [landGeoJSON, setLandGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
   const [visitedGeoJSON, setVisitedGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
-  // Build land GeoJSON once, deferred so the map renders first
+  // Build land GeoJSON in background chunks so the JS thread stays free for animation
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLandGeoJSON(getLandGeoJSON());
-    }, 0);
-    return () => clearTimeout(timer);
+    let cancelled = false;
+    getLandGeoJSONAsync().then((geojson) => {
+      if (!cancelled) {
+        setLandGeoJSON(geojson);
+        onReadyRef.current?.();
+      }
+    });
+    return () => { cancelled = true; };
   }, []);
 
   // Rebuild visited GeoJSON whenever the set of visited cells changes

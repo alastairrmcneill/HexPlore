@@ -28,6 +28,7 @@ import GraticuleLayer from "./GraticuleLayer";
 import HexLayer from "./HexLayer";
 import HomeCountrySheet from "./HomeCountrySheet";
 import MapHint from "./MapHint";
+import MapLoadingOverlay from "./MapLoadingOverlay";
 import StatsBar from "./StatsBar";
 import TopBar from "./TopBar";
 import ZoomControls from "./ZoomControls";
@@ -60,6 +61,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
   const [worldPct, setWorldPct] = useState(0);
   const [countryCount, setCountryCount] = useState(0);
   const [cellsLoaded, setCellsLoaded] = useState(false);
+  const [hexLayerReady, setHexLayerReady] = useState(false);
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const [shareMapUri, setShareMapUri] = useState<string | null>(null);
   const [homeCountrySheetVisible, setHomeCountrySheetVisible] = useState(false);
@@ -255,7 +257,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
       >
         <Camera ref={cameraRef} initialViewState={{ center: INITIAL_CENTER, zoom: INITIAL_ZOOM }} minZoom={1} />
         <GraticuleLayer zoom={zoom} />
-        <HexLayer visitedIndices={visitedIndices} accent={accent} />
+        <HexLayer visitedIndices={visitedIndices} accent={accent} onReady={() => setHexLayerReady(true)} />
       </Map>
 
       <TopBar zoom={zoom} onShare={handleShare} onAdd={handleRescan} />
@@ -306,6 +308,8 @@ export default function MapScreen({ onNavigateStats }: Props) {
         onDismiss={handleHomeCountryDismiss}
         showSkip
       />
+
+      <MapLoadingOverlay visible={!hexLayerReady} />
 
       <Modal visible={rescanPhase !== null} animationType="slide" transparent={false} statusBarTranslucent>
         <View style={styles.rescanContainer}>
