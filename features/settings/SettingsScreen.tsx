@@ -65,7 +65,7 @@ export default function SettingsScreen() {
   }
 
   function handleContact() {
-    Linking.openURL("mailto:hello@hexplore.app");
+    Linking.openURL("mailto:alastair.r.mcneill@gmail.com");
   }
 
   return (
@@ -105,7 +105,7 @@ export default function SettingsScreen() {
         <SectionHeader title={t('settings.feedback.header')} />
         <Section>
           <SettingsRow label={t('settings.feedback.rate')} onPress={handleRate} />
-          <SettingsRow label={t('settings.feedback.contact')} value="hello@hexplore.app" onPress={handleContact} isLast />
+          <SettingsRow label={t('settings.feedback.contact')} value="alastair.r.mcneill@gmail.com" onPress={handleContact} isLast />
         </Section>
 
         {/* Legal */}
