@@ -1,0 +1,141 @@
+{
+  "onboarding": {
+    "eyebrow": "HexPlore",
+    "headline": "See how much of the world you've actually been to.",
+    "body": "HexPlore reads the location of photos in your camera roll and fills in a hexagon for every 50 km square you've visited. Nothing leaves your device.",
+    "cta": "Scan my photos",
+    "safetyNote": "Photo data stays on this device.",
+    "permDenied": {
+      "before": "Photos access was denied. To enable it, go to ",
+      "link": "Settings → HexPlore → Photos",
+      "after": "."
+    },
+    "scanning": {
+      "label": "SCANNING CAMERA ROLL",
+      "detail": "Checking {{processed}} of {{total}} photos for location data"
+    },
+    "done": {
+      "labelDone": "ALL DONE",
+      "labelNoHexes": "SCAN COMPLETE",
+      "hexesFound_one": "{{count}} hex found",
+      "hexesFound_other": "{{count}} hexes found",
+      "noHexes": "No geotagged photos found",
+      "detailMapped": "Your camera roll has been mapped.",
+      "detailNoHexes": "Your photos may not have location data.\nYou can mark hexes manually on the map.",
+      "ctaResults": "See results",
+      "ctaExplore": "Explore the map"
+    }
+  },
+  "map": {
+    "topbar": {
+      "worldCoverage": "WORLD COVERAGE",
+      "scanAgain": "Scan photos again",
+      "zoom": "ZOOM {{zoom}}× · {{level}}"
+    },
+    "zoomLevel": {
+      "world": "WORLD",
+      "regional": "REGIONAL",
+      "local": "LOCAL"
+    },
+    "rescan": {
+      "scanning": "SCANNING CAMERA ROLL",
+      "done": "ALL DONE",
+      "detail": "Checking {{processed}} of {{total}} photos for location data",
+      "mapped": "Your camera roll has been mapped.",
+      "backToMap": "Back to map",
+      "hexesFound_one": "{{count}} hex found",
+      "hexesFound_other": "{{count}} hexes found",
+      "noNewHexes": "No new hexes found"
+    },
+    "stats": {
+      "worldCovered": "WORLD COVERED",
+      "hexes": "HEXES",
+      "countries": "COUNTRIES ›"
+    },
+    "cell": {
+      "firstPhoto": "FIRST PHOTO",
+      "photos": "PHOTOS",
+      "coords": "COORDS",
+      "locating": "Locating…"
+    },
+    "emptyCell": {
+      "notVisited": "Not yet visited",
+      "markVisited": "Mark as visited"
+    },
+    "hint": "Tap any hex on the map to mark it as visited",
+    "loading": "Loading your map…"
+  },
+  "homeCountry": {
+    "eyebrow": "HOME COUNTRY",
+    "title": "Where do you call home?",
+    "subtitle": "We'll open the map centred here each time you launch the app.",
+    "placeholder": "Select a country…",
+    "save": "Save",
+    "skip": "Skip for now"
+  },
+  "stats": {
+    "worldCovered": "WORLD COVERED",
+    "hero": {
+      "subtitle": "{{hexes}} hexes of {{total}} on Earth  —  about {{km2}} km² covered."
+    },
+    "hexesPerYear": "HEXES PER YEAR",
+    "bragging": {
+      "header": "YOUR NUMBERS",
+      "totalHexes": "Total Hexes",
+      "countries": "Countries",
+      "continents": "Continents"
+    },
+    "countries": {
+      "label": "COUNTRIES · {{count}}",
+      "right": "HEXES · % COVERED"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": {
+      "header": "APPEARANCE",
+      "accentColour": "Accent colour",
+      "language": "Language"
+    },
+    "location": {
+      "header": "LOCATION",
+      "homeCountry": "Home Country",
+      "notSet": "Not set"
+    },
+    "feedback": {
+      "header": "FEEDBACK",
+      "rate": "Rate HexPlore",
+      "contact": "Contact"
+    },
+    "legal": {
+      "header": "LEGAL",
+      "about": "About",
+      "privacy": "Privacy Policy"
+    },
+    "footer": "HexPlore · v{{version}}"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "done": "Done",
+    "body": "HexPlore is designed with privacy as a default, not an afterthought.\n\nALL PROCESSING HAPPENS ON YOUR DEVICE\nHexPlore reads the GPS coordinates embedded in your photos to map which parts of the world you have visited. This processing happens entirely on your device. Your photos, their contents, and their locations are never uploaded, transmitted, or shared with any server or third party.\n\nANONYMOUS USAGE ANALYTICS\nTo help us understand how the app is used and where to focus improvements, HexPlore collects anonymous usage events via PostHog. These events contain no personal information — no names, no photo data, no location data — only actions like \"opened the stats screen\" or \"shared a result.\" Each install is assigned a random ID that cannot be linked back to you. You can opt out by contacting us at hello@hexplore.app.\n\nDATA STORED ON YOUR DEVICE\nThe only data HexPlore stores is a list of H3 hex cell identifiers (grid references) representing places you have visited, along with photo counts and dates. This data lives in a local SQLite database on your device and is removed when you delete the app.\n\nNO ACCOUNTS, NO CLOUD\nHexPlore does not have user accounts, cloud sync, or any server-side component. There is nothing to log in to and nothing to delete remotely.\n\nCONTACT\nIf you have any questions about privacy, email hello@hexplore.app."
+  },
+  "share": {
+    "earthLand": "of Earth's land visited",
+    "hexes": "{{count}} hexes",
+    "countries": "{{count}} countries"
+  },
+  "tabs": {
+    "map": "Map",
+    "stats": "Stats",
+    "settings": "Settings"
+  },
+  "languages": {
+    "auto": "Device default",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español",
+    "de": "Deutsch",
+    "ar": "العربية",
+    "zh": "中文"
+  }
+}

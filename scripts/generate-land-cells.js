@@ -45,8 +45,13 @@ function getFeatureCoordinates(feature) {
 
 function getCountryCode(feature) {
   const p = feature.properties;
-  // Natural Earth uses ISO_A2 — fall back through alternatives for territories
-  return p.ISO_A2 || p.iso_a2 || p.ADM0_A3 || null;
+  // ISO_A2 is -99 for some sovereign states (France, Norway, etc.) in Natural Earth.
+  // ISO_A2_EH and WB_A2 carry the correct 2-letter code for those countries.
+  const candidates = [p.ISO_A2, p.iso_a2, p.ISO_A2_EH, p.WB_A2, p.ADM0_A3];
+  for (const code of candidates) {
+    if (code && code !== '-99') return code;
+  }
+  return null;
 }
 
 console.log('Loading GeoJSON sources…');

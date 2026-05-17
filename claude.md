@@ -16,6 +16,7 @@ You are building **HexPlore**, an iOS-only React Native app built with Expo (dev
 - **H3-js** (`h3-js`) for hex grid logic — use resolution 4 (≈1,700km² per cell)
 - **expo-media-library** for camera roll access
 - **expo-sqlite** for local persistence of visited hex IDs
+- **react-native-svg** for hex polygon animations (onboarding bloom + scan ripple)
 - **react-native-reanimated** + **react-native-gesture-handler** for animations and swipe gestures
 - **PostHog** (`posthog-react-native`) for anonymous analytics — no consent dialog needed, just initialise it silently and mention it in the Privacy Policy copy
 - **Natural Earth** GeoJSON (1:50m resolution) bundled as a local asset for land polygon data
@@ -28,31 +29,27 @@ Do **not** implement Liquid Glass / `expo-glass-effect` yet — that is a future
 ### Core Data Pipeline
 
 1. On first run, scan camera roll via `expo-media-library`, extract GPS EXIF coordinates from each geotagged photo
-2. For each coordinate, call `h3.latLngToCell(lat, lng, 4)` to get an H3 index
+2. For each coordinate, call `h3.geoToH3(lat, lng, 4)` to get an H3 index (h3-js v3 API — do not use `latLngToCell`, that is h3-js v4)
 3. Store visited H3 indices in SQLite with metadata: `{ h3index, first_photo_date, photo_count, place_name }`
-4. At build time, pre-generate a JSON file of all H3 resolution-4 cells that intersect land (using Natural Earth polygons) — bundle this as a local asset. There are approximately 17,000 land cells at res 4.
+4. At build time, pre-generate a JSON file of all H3 resolution-4 cells that intersect land (using Natural Earth polygons) — bundle this as a local asset. There are **74,942** land cells at res 4 (the earlier spec estimate of ~17,000 was wrong by ~4×).
 5. Reverse geocode each unique H3 cell centroid using `expo-location`'s `reverseGeocodeAsync` to get place name, region, country, country code (for flag emoji)
 
 ---
 
-### Onboarding Flow (4 screens, paginated carousel with dots indicator)
+### Onboarding Flow (single screen, three in-place states)
 
-**Screen 1 — Welcome**
-Full screen. Large animated hex bloom (concentric rings of hexagons animating outward, same concept as the Claude Design prototype). Bold headline: _"See how much of the world you've actually been to."_ Subheadline: _"Not just the countries. The actual places."_ CTA pill at bottom: _"Get Started →"_
+The onboarding lives in `app/onboarding/index.tsx` and cycles through three states without any carousel or navigation transitions. On every cold launch the app checks `AsyncStorage` for `onboarding_complete`; if set, it redirects straight to `/(tabs)`.
 
-**Screen 2 — How it works**
-Two illustrated panels stacked vertically:
+**State 1 — Welcome**
+Full screen (`#FAFAF7`). Upper region: `HexBloom` animation (concentric rings of pointy-top hexagons rippling outward, driven by `requestAnimationFrame`). Lower region: eyebrow label _"HexPlore · v0.1"_ in SF Mono, large headline _"See how much of the world you've actually been to."_, body copy _"HexPlore reads the location of photos in your camera roll and fills in a hexagon for every 50 km square you've visited. Nothing leaves your device."_ CTA dark pill: _"Scan my photos →"_. Below the button: _"Photo data stays on this device."_ in muted small type.
 
-- Top panel: phone icon with camera roll → hexagons filling in. Caption: _"We read where your photos were taken"_
-- Bottom panel: world map with sparse hex coverage. Caption: _"And show you exactly how much ground you've covered"_
-  Small print at bottom: _"Everything is processed on your device. No photos or location data ever leave your phone."_
-  CTA: _"Scan My Photos →"_ — tapping this requests `expo-media-library` permission then begins scanning
+Tapping the CTA immediately requests `expo-media-library` permission and begins scanning. If permission is denied the screen stays on the welcome state (no error state needed for MVP).
 
-**Screen 3 — Scanning progress**
-Animated hex bloom that fills in as scanning progresses (same ripple SVG concept from the prototype). Large percentage number in accent colour. Sub-label: _"Reading EXIF coordinates · X of Y photos"_. Progress is real, driven by actual media library iteration. Once complete (100%), show a brief 400ms pause then transition to Screen 4.
+**State 2 — Scanning**
+Same screen. `ScanRipple` SVG (5-ring hex grid filling radially from centre) replaces the bloom. Live progress: eyebrow _"SCANNING CAMERA ROLL"_, large accent-coloured `X%` in SF Mono, sub-label _"Reading EXIF coordinates · N of M photos"_. Progress is driven by real `scanCameraRoll` callbacks — no fake animation.
 
-**Screen 4 — Results reveal**
-Show the user's actual world coverage percentage in large type. Excited copy: _"You've covered X% of the world's land."_ Below it a small world hex map thumbnail showing their visited cells. CTA button: _"Explore your map →"_ — navigates to the main app. Also trigger `StoreReview.requestReview()` from `expo-store-review` on this screen.
+**State 3 — Done**
+Ripple locked at 100% fill. Eyebrow _"ALL DONE"_, headline _"N hexes found"_, sub-label _"Your camera roll has been mapped."_, dark pill CTA _"See results →"_. Tapping writes `onboarding_complete: 'true'` to AsyncStorage and navigates to `/(tabs)`.
 
 ---
 
@@ -66,7 +63,7 @@ Bottom tab bar with three tabs: **Map**, **Stats**, **Settings**. Tab bar sits a
 
 Full-bleed MapLibre map. Render two layers on top:
 
-1. **Land outline layer** — all ~17,000 land H3 cells rendered as hollow hexagon polygons (light grey stroke, transparent fill)
+1. **Land outline layer** — all ~74,942 land H3 cells rendered as hollow hexagon polygons (light grey stroke, transparent fill)
 2. **Visited layer** — visited H3 cells rendered as filled hexagon polygons in the accent colour
 
 **Zoom behaviour:** At low zoom (world view) hexes are small and dense, forming a dotted-map aesthetic. At high zoom, individual hexes are large enough to tap comfortably. Use MapLibre zoom-dependent styling.
@@ -115,8 +112,8 @@ Swipe-down-to-dismiss.
 
 Scrollable. Structure top to bottom:
 
-1. **Hero number** — `X.XX%` of world land in large monospace type, accent colour. Subtitle: "N hexes of 59,400 on Earth — about N km² covered"
-2. **Honest breakdown header** — small caps: "HOW MUCH YOU REALLY SAW". Country list sorted by **% of that country's land covered** (ascending — most honest first). Each row: flag, country name, hex count, % coverage as a thin bar + number.
+1. **Hero number** — `X.XX%` of world land in large monospace type, accent colour. Subtitle: "N hexes of 74,942 on Earth — about N km² covered"
+2. **Honest breakdown header** — small caps: "HOW MUCH YOU REALLY SAW". Country list sorted by **% of that country's land covered** (descending — highest coverage first). Each row: flag, country name, hex count, % coverage as a thin bar + number.
 3. **Bragging shelf** — horizontal scroll of stat cards: Total Hexes, Countries, Continents, Furthest from Home
 4. **Hexes per year** — vertical bar chart, one bar per year
 5. **Personal insights cards** — algorithmically surfaced: "Your patch" (most visited hex location), "First hex ever" (earliest photo date), "Best explored country" (highest % coverage)

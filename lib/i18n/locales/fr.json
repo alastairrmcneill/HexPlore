@@ -1,0 +1,141 @@
+{
+  "onboarding": {
+    "eyebrow": "HexPlore",
+    "headline": "Découvrez combien du monde vous avez réellement visité.",
+    "body": "HexPlore lit la localisation de vos photos et colorise un hexagone pour chaque carré de 50 km visité. Rien ne quitte votre appareil.",
+    "cta": "Scanner mes photos",
+    "safetyNote": "Les données restent sur cet appareil.",
+    "permDenied": {
+      "before": "L'accès aux photos a été refusé. Pour l'activer, allez dans ",
+      "link": "Réglages → HexPlore → Photos",
+      "after": "."
+    },
+    "scanning": {
+      "label": "ANALYSE EN COURS",
+      "detail": "Vérification de {{processed}} sur {{total}} photos"
+    },
+    "done": {
+      "labelDone": "TERMINÉ",
+      "labelNoHexes": "ANALYSE TERMINÉE",
+      "hexesFound_one": "{{count}} hexagone trouvé",
+      "hexesFound_other": "{{count}} hexagones trouvés",
+      "noHexes": "Aucune photo géolocalisée trouvée",
+      "detailMapped": "Votre photothèque a été analysée.",
+      "detailNoHexes": "Vos photos ne semblent pas contenir de données de localisation.\nVous pouvez marquer des hexagones manuellement sur la carte.",
+      "ctaResults": "Voir les résultats",
+      "ctaExplore": "Explorer la carte"
+    }
+  },
+  "map": {
+    "topbar": {
+      "worldCoverage": "COUVERTURE MONDIALE",
+      "scanAgain": "Rescanner les photos",
+      "zoom": "ZOOM {{zoom}}× · {{level}}"
+    },
+    "zoomLevel": {
+      "world": "MONDE",
+      "regional": "RÉGIONAL",
+      "local": "LOCAL"
+    },
+    "rescan": {
+      "scanning": "ANALYSE EN COURS",
+      "done": "TERMINÉ",
+      "detail": "Vérification de {{processed}} sur {{total}} photos",
+      "mapped": "Votre photothèque a été analysée.",
+      "backToMap": "Retour à la carte",
+      "hexesFound_one": "{{count}} hexagone trouvé",
+      "hexesFound_other": "{{count}} hexagones trouvés",
+      "noNewHexes": "Aucun nouvel hexagone trouvé"
+    },
+    "stats": {
+      "worldCovered": "COUVERT",
+      "hexes": "HEXAGONES",
+      "countries": "PAYS ›"
+    },
+    "cell": {
+      "firstPhoto": "PREMIÈRE PHOTO",
+      "photos": "PHOTOS",
+      "coords": "COORDS",
+      "locating": "Localisation…"
+    },
+    "emptyCell": {
+      "notVisited": "Pas encore visité",
+      "markVisited": "Marquer comme visité"
+    },
+    "hint": "Appuyez sur un hexagone pour le marquer comme visité",
+    "loading": "Chargement de la carte…"
+  },
+  "homeCountry": {
+    "eyebrow": "PAYS D'ORIGINE",
+    "title": "Où habitez-vous ?",
+    "subtitle": "La carte s'ouvrira sur votre pays à chaque lancement.",
+    "placeholder": "Choisir un pays…",
+    "save": "Enregistrer",
+    "skip": "Passer pour l'instant"
+  },
+  "stats": {
+    "worldCovered": "COUVERTURE MONDIALE",
+    "hero": {
+      "subtitle": "{{hexes}} hexagones sur {{total}} sur Terre  —  environ {{km2}} km² couverts."
+    },
+    "hexesPerYear": "HEXAGONES PAR AN",
+    "bragging": {
+      "header": "VOS CHIFFRES",
+      "totalHexes": "Hexagones",
+      "countries": "Pays",
+      "continents": "Continents"
+    },
+    "countries": {
+      "label": "PAYS · {{count}}",
+      "right": "HEX · % COUVERT"
+    }
+  },
+  "settings": {
+    "title": "Réglages",
+    "appearance": {
+      "header": "APPARENCE",
+      "accentColour": "Couleur d'accentuation",
+      "language": "Langue"
+    },
+    "location": {
+      "header": "LOCALISATION",
+      "homeCountry": "Pays d'origine",
+      "notSet": "Non défini"
+    },
+    "feedback": {
+      "header": "AVIS",
+      "rate": "Noter HexPlore",
+      "contact": "Contact"
+    },
+    "legal": {
+      "header": "JURIDIQUE",
+      "about": "À propos",
+      "privacy": "Politique de confidentialité"
+    },
+    "footer": "HexPlore · v{{version}}"
+  },
+  "privacy": {
+    "title": "Politique de confidentialité",
+    "done": "Fermer",
+    "body": "HexPlore a été conçu avec la confidentialité comme valeur fondamentale.\n\nTRAITEMENT ENTIÈREMENT LOCAL\nHexPlore lit les coordonnées GPS intégrées dans vos photos pour cartographier les régions du monde que vous avez visitées. Ce traitement s'effectue entièrement sur votre appareil. Vos photos, leur contenu et leurs localisations ne sont jamais téléchargés, transmis ou partagés avec un serveur ou un tiers.\n\nANALYTIQUES ANONYMES\nPour nous aider à comprendre comment l'application est utilisée, HexPlore collecte des événements d'utilisation anonymes via PostHog. Ces événements ne contiennent aucune information personnelle — ni noms, ni données photo, ni données de localisation. Chaque installation se voit attribuer un identifiant aléatoire qui ne peut pas être lié à vous. Vous pouvez vous désinscrire en nous contactant à hello@hexplore.app.\n\nDONNÉES STOCKÉES SUR VOTRE APPAREIL\nLes seules données stockées par HexPlore sont une liste d'identifiants de cellules H3 représentant les lieux que vous avez visités, ainsi que des comptages de photos et des dates. Ces données résident dans une base de données SQLite locale sur votre appareil et sont supprimées lorsque vous désinstallez l'application.\n\nPAS DE COMPTE, PAS DE CLOUD\nHexPlore n'a pas de comptes utilisateurs, de synchronisation cloud ni de composant côté serveur. Il n'y a rien auquel se connecter et rien à supprimer à distance.\n\nCONTACT\nPour toute question sur la confidentialité, écrivez à hello@hexplore.app."
+  },
+  "share": {
+    "earthLand": "de la surface terrestre visitée",
+    "hexes": "{{count}} hexagones",
+    "countries": "{{count}} pays"
+  },
+  "tabs": {
+    "map": "Carte",
+    "stats": "Stats",
+    "settings": "Réglages"
+  },
+  "languages": {
+    "auto": "Langue de l'appareil",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español",
+    "de": "Deutsch",
+    "ar": "العربية",
+    "zh": "中文"
+  }
+}

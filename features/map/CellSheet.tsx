@@ -1,0 +1,170 @@
+import BottomSheet from "@/components/BottomSheet";
+import { getCellByIndex, VisitedCell } from "@/lib/db/queries";
+import { cellToCenter } from "@/lib/h3/hexUtils";
+import { enqueueGeocode } from "@/lib/media/geocoder";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { StyleSheet, Text, View } from "react-native";
+import HexNeighborThumbnail from "./HexNeighborThumbnail";
+import PhotoStrip from "./PhotoStrip";
+
+interface Props {
+  visible: boolean;
+  h3index: string;
+  visitedSet: Set<string>;
+  accent: string;
+  onClose: () => void;
+}
+
+function codeToFlag(code: string): string {
+  return [...code.toUpperCase()].map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0))).join("");
+}
+
+function formatDate(ms: number | null, locale: string): string {
+  if (!ms) return "—";
+  return new Date(ms).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <View>
+      <Text style={styles.metricLabel}>{label}</Text>
+      <Text style={styles.metricValue}>{value}</Text>
+    </View>
+  );
+}
+
+export default function CellSheet({ visible, h3index, visitedSet, accent, onClose }: Props) {
+  const { t, i18n } = useTranslation();
+  const [cell, setCell] = useState<VisitedCell | null>(null);
+
+  useEffect(() => {
+    if (!visible || !h3index) return;
+    getCellByIndex(h3index).then((row) => {
+      setCell(row);
+      if (row && !row.geocoded_at) enqueueGeocode(h3index);
+    });
+  }, [visible, h3index]);
+
+  // Poll until geocoding completes and updates the place name
+  useEffect(() => {
+    if (!visible || !h3index || cell?.geocoded_at) return;
+    const interval = setInterval(() => {
+      getCellByIndex(h3index).then((row) => {
+        if (row?.geocoded_at) setCell(row);
+      });
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [visible, h3index, cell?.geocoded_at]);
+
+  const [lat, lng] = h3index ? cellToCenter(h3index) : [0, 0];
+  const dateStr = formatDate(cell?.first_photo_date ?? null, i18n.language);
+  const flag = cell?.country_code ? codeToFlag(cell.country_code) : "";
+
+  // Fallback chain: place_name → country → "Locating…" (pending geocode) → coords
+  let placeName: string;
+  if (cell?.place_name) {
+    placeName = cell.place_name;
+  } else if (cell?.country) {
+    placeName = cell.country;
+  } else if (!cell || !cell.geocoded_at) {
+    placeName = t('map.cell.locating');
+  } else {
+    placeName = `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`;
+  }
+
+  return (
+    <BottomSheet visible={visible} onClose={onClose}>
+      {/* identity row */}
+      <View style={styles.identityRow}>
+        {h3index ? <HexNeighborThumbnail h3index={h3index} visitedSet={visitedSet} accent={accent} size={62} /> : null}
+        <View style={styles.identityText}>
+          <View style={styles.countryRow}>
+            {flag ? <Text style={styles.flagEmoji}>{flag}</Text> : null}
+            <Text style={styles.countryLabel}>{(cell?.country ?? "").toUpperCase()}</Text>
+          </View>
+          <Text style={styles.placeName} numberOfLines={2}>
+            {placeName}
+          </Text>
+          {cell?.region ? <Text style={styles.region}>{cell.region}</Text> : null}
+        </View>
+      </View>
+
+      {/* metric strip */}
+      <View style={styles.metrics}>
+        <Metric label={t('map.cell.firstPhoto')} value={dateStr} />
+        <Metric label={t('map.cell.photos')} value={(cell?.photo_count ?? 0).toLocaleString()} />
+        <Metric label={t('map.cell.coords')} value={`${lat.toFixed(2)}°, ${lng.toFixed(2)}°`} />
+      </View>
+
+      {/* photo strip */}
+      {h3index ? <PhotoStrip h3index={h3index} /> : null}
+    </BottomSheet>
+  );
+}
+
+const styles = StyleSheet.create({
+  identityRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    marginBottom: 16,
+  },
+  identityText: {
+    flex: 1,
+    minWidth: 0,
+    marginTop: 4,
+  },
+  countryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 2,
+  },
+  flagEmoji: {
+    fontSize: 22,
+  },
+  countryLabel: {
+    fontFamily: "ui-monospace",
+    fontSize: 10.5,
+    letterSpacing: 2,
+    color: "rgba(14,14,12,0.5)",
+    textTransform: "uppercase",
+  },
+  placeName: {
+    fontSize: 22,
+    fontWeight: "600",
+    letterSpacing: -0.44,
+    lineHeight: 26,
+    color: "#0E0E0C",
+    marginTop: 4,
+  },
+  region: {
+    fontSize: 13,
+    color: "rgba(14,14,12,0.55)",
+    marginTop: 2,
+  },
+  metrics: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "rgba(14,14,12,0.07)",
+    marginBottom: 16,
+  },
+  metricLabel: {
+    fontFamily: "ui-monospace",
+    fontSize: 9.5,
+    letterSpacing: 2,
+    color: "rgba(14,14,12,0.5)",
+    textTransform: "uppercase",
+  },
+  metricValue: {
+    fontSize: 16,
+    fontWeight: "500",
+    letterSpacing: -0.2,
+    color: "#0E0E0C",
+    marginTop: 4,
+  },
+});
