@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 interface YearBar {
@@ -12,13 +13,14 @@ interface Props {
 }
 
 export default function HexesPerYearChart({ years, accent }: Props) {
+  const { t } = useTranslation();
   if (years.length === 0) return null;
   const maxCount = Math.max(...years.map(y => y.count), 1);
   const BAR_MAX_HEIGHT = 70;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>HEXES PER YEAR</Text>
+      <Text style={styles.label}>{t('stats.hexesPerYear')}</Text>
       <View style={styles.chart}>
         {years.map(y => (
           <View key={y.year} style={styles.barCol}>

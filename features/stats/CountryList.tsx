@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export interface CountryStat {
@@ -44,6 +45,7 @@ function CountryRow({ stat, accent, isLast }: { stat: CountryStat; accent: strin
 }
 
 export default function CountryList({ stats, accent }: Props) {
+  const { t } = useTranslation();
   if (stats.length === 0) return null;
 
   // Sort descending by % coverage (highest first)
@@ -56,8 +58,8 @@ export default function CountryList({ stats, accent }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.sectionLabel}>COUNTRIES · {stats.length}</Text>
-        <Text style={styles.headerRight}>HEXES · % COVERED</Text>
+        <Text style={styles.sectionLabel}>{t('stats.countries.label', { count: stats.length })}</Text>
+        <Text style={styles.headerRight}>{t('stats.countries.right')}</Text>
       </View>
       {sorted.map((s, i) => (
         <CountryRow

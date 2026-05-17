@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export default function MapHint({ visible }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [dismissed, setDismissed] = useState(false);
 
@@ -14,7 +16,7 @@ export default function MapHint({ visible }: Props) {
 
   return (
     <View style={[styles.container, { bottom: insets.bottom + 158 }]} pointerEvents="box-none">
-      <Text style={styles.text}>Tap any hex on the map to mark it as visited</Text>
+      <Text style={styles.text}>{t('map.hint')}</Text>
       <TouchableOpacity
         onPress={() => setDismissed(true)}
         hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}

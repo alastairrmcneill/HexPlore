@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import { LAND_CELL_COUNT } from '@/constants/h3';
 
@@ -11,17 +12,17 @@ interface Props {
 }
 
 export default function HeroNumber({ worldPct, hexCount, accent }: Props) {
+  const { t } = useTranslation();
   const km2 = (hexCount * KM2_PER_CELL).toLocaleString();
   return (
     <View style={styles.container}>
-      <Text style={styles.eyebrow}>WORLD COVERED</Text>
+      <Text style={styles.eyebrow}>{t('stats.worldCovered')}</Text>
       <View style={styles.numberRow}>
         <Text style={[styles.number, { color: accent }]}>{worldPct.toFixed(2)}</Text>
         <Text style={[styles.percent, { color: accent }]}>%</Text>
       </View>
       <Text style={styles.subtitle}>
-        {hexCount.toLocaleString()} hexes of {LAND_CELL_COUNT.toLocaleString()} on Earth
-        {'  —  '}about <Text style={styles.subtitleMono}>{km2} km²</Text> covered.
+        {t('stats.hero.subtitle', { hexes: hexCount.toLocaleString(), total: LAND_CELL_COUNT.toLocaleString(), km2 })}
       </Text>
     </View>
   );

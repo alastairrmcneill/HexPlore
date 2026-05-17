@@ -4,6 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PostHogProvider } from 'posthog-react-native';
 import { ThemeProvider } from '@/lib/theme/ThemeContext';
+import { LocaleProvider } from '@/lib/i18n/LocaleContext';
+import '@/lib/i18n';
 import { runMigrations } from '@/lib/db/migrations';
 import { initAnalytics, posthog } from '@/lib/analytics';
 
@@ -43,13 +45,15 @@ export default function RootLayout() {
         }}
       >
         <ThemeProvider>
-          <ScreenTracker />
-          <Stack>
-            <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-          </Stack>
-          <StatusBar style="dark" />
+          <LocaleProvider>
+            <ScreenTracker />
+            <Stack>
+              <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            </Stack>
+            <StatusBar style="dark" />
+          </LocaleProvider>
         </ThemeProvider>
       </PostHogProvider>
     </GestureHandlerRootView>

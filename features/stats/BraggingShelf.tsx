@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 interface Props {
@@ -18,13 +19,14 @@ function StatCard({ label, value, accent }: { label: string; value: string; acce
 }
 
 export default function BraggingShelf({ hexCount, countryCount, continentCount, accent }: Props) {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionLabel}>YOUR NUMBERS</Text>
+      <Text style={styles.sectionLabel}>{t('stats.bragging.header')}</Text>
       <View style={styles.row}>
-        <StatCard label="Total Hexes" value={hexCount.toLocaleString()} accent={accent} />
-        <StatCard label="Countries" value={String(countryCount)} accent={accent} />
-        <StatCard label="Continents" value={String(continentCount)} accent={accent} />
+        <StatCard label={t('stats.bragging.totalHexes')} value={hexCount.toLocaleString()} accent={accent} />
+        <StatCard label={t('stats.bragging.countries')} value={String(countryCount)} accent={accent} />
+        <StatCard label={t('stats.bragging.continents')} value={String(continentCount)} accent={accent} />
       </View>
     </View>
   );

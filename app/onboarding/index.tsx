@@ -6,6 +6,7 @@ import { useTheme } from "@/lib/theme/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -14,6 +15,7 @@ type Phase = "welcome" | "scanning" | "done";
 const ONBOARDING_KEY = "onboarding_complete";
 
 export default function OnboardingScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { accent } = useTheme();
   const insets = useSafeAreaInsets();
@@ -88,32 +90,29 @@ export default function OnboardingScreen() {
           </View>
 
           <View style={styles.copy}>
-            <Text style={styles.eyebrow}>HexPlore</Text>
-            <Text style={styles.headline}>See how much of the world you've actually been to.</Text>
-            <Text style={styles.body}>
-              HexPlore reads the location of photos in your camera roll and fills in a hexagon for every 50 km square
-              you've visited. Nothing leaves your device.
-            </Text>
+            <Text style={styles.eyebrow}>{t('onboarding.eyebrow')}</Text>
+            <Text style={styles.headline}>{t('onboarding.headline')}</Text>
+            <Text style={styles.body}>{t('onboarding.body')}</Text>
           </View>
 
           {permDenied && (
             <View style={styles.permBanner}>
               <Text style={styles.permBannerText}>
-                Photos access was denied. To enable it, go to{" "}
+                {t('onboarding.permDenied.before')}
                 <Text style={styles.permBannerLink} onPress={() => Linking.openSettings()}>
-                  Settings → HexPlore → Photos
+                  {t('onboarding.permDenied.link')}
                 </Text>
-                .
+                {t('onboarding.permDenied.after')}
               </Text>
             </View>
           )}
 
           <View style={styles.ctaSection}>
             <TouchableOpacity style={styles.ctaButton} onPress={handleScan} activeOpacity={0.85}>
-              <Text style={styles.ctaLabel}>Scan my photos</Text>
+              <Text style={styles.ctaLabel}>{t('onboarding.cta')}</Text>
               <Text style={styles.ctaArrow}>→</Text>
             </TouchableOpacity>
-            <Text style={styles.safetyNote}>Photo data stays on this device.</Text>
+            <Text style={styles.safetyNote}>{t('onboarding.safetyNote')}</Text>
           </View>
         </View>
       )}
@@ -122,13 +121,13 @@ export default function OnboardingScreen() {
         <View style={styles.scanContainer}>
           <ScanRipple accent={accent} progress={progress} />
           <View style={styles.scanText}>
-            <Text style={styles.scanLabel}>SCANNING CAMERA ROLL</Text>
+            <Text style={styles.scanLabel}>{t('onboarding.scanning.label')}</Text>
             <Text style={[styles.scanPercent, { color: accent }]}>
               {Math.floor(progress)}
               <Text style={[styles.scanPercentSign, { color: accent }]}>%</Text>
             </Text>
             <Text style={styles.scanDetail}>
-              Checking {processed.toLocaleString()} of {total.toLocaleString()} photos for location data
+              {t('onboarding.scanning.detail', { processed: processed.toLocaleString(), total: total.toLocaleString() })}
             </Text>
           </View>
         </View>
@@ -140,17 +139,15 @@ export default function OnboardingScreen() {
           <View style={styles.scanText}>
             {hexCount === 0 ? (
               <>
-                <Text style={styles.scanLabel}>SCAN COMPLETE</Text>
-                <Text style={styles.doneHexCount}>No geotagged photos found</Text>
-                <Text style={styles.scanDetail}>
-                  Your photos may not have location data.{"\n"}You can mark hexes manually on the map.
-                </Text>
+                <Text style={styles.scanLabel}>{t('onboarding.done.labelNoHexes')}</Text>
+                <Text style={styles.doneHexCount}>{t('onboarding.done.noHexes')}</Text>
+                <Text style={styles.scanDetail}>{t('onboarding.done.detailNoHexes')}</Text>
               </>
             ) : (
               <>
-                <Text style={styles.scanLabel}>ALL DONE</Text>
-                <Text style={styles.doneHexCount}>{hexCount.toLocaleString()} hexes found</Text>
-                <Text style={styles.scanDetail}>Your camera roll has been mapped.</Text>
+                <Text style={styles.scanLabel}>{t('onboarding.done.labelDone')}</Text>
+                <Text style={styles.doneHexCount}>{t('onboarding.done.hexesFound', { count: hexCount })}</Text>
+                <Text style={styles.scanDetail}>{t('onboarding.done.detailMapped')}</Text>
               </>
             )}
           </View>
@@ -159,7 +156,7 @@ export default function OnboardingScreen() {
             onPress={handleSeeResults}
             activeOpacity={0.85}
           >
-            <Text style={styles.ctaLabel}>{hexCount === 0 ? "Explore the map" : "See results"}</Text>
+            <Text style={styles.ctaLabel}>{hexCount === 0 ? t('onboarding.done.ctaExplore') : t('onboarding.done.ctaResults')}</Text>
             <Text style={styles.ctaArrow}>→</Text>
           </TouchableOpacity>
         </View>

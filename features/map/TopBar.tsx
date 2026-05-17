@@ -1,5 +1,6 @@
 import { SymbolView } from 'expo-symbols';
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Animated,
   Modal,
@@ -17,16 +18,17 @@ interface Props {
   onAdd: () => void;
 }
 
-function zoomLabel(zoom: number): string {
-  if (zoom < 3) return 'WORLD';
-  if (zoom < 5) return 'REGIONAL';
-  return 'LOCAL';
-}
-
 export default function TopBar({ zoom, onShare, onAdd }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [menuVisible, setMenuVisible] = useState(false);
   const anim = useRef(new Animated.Value(0)).current;
+
+  function zoomLevel(): string {
+    if (zoom < 3) return t('map.zoomLevel.world');
+    if (zoom < 5) return t('map.zoomLevel.regional');
+    return t('map.zoomLevel.local');
+  }
 
   function openMenu() {
     setMenuVisible(true);
@@ -60,7 +62,7 @@ export default function TopBar({ zoom, onShare, onAdd }: Props) {
       {/* app bar row */}
       <View style={[styles.bar, { top: insets.top + 8 }]} pointerEvents="box-none">
         <View pointerEvents="none">
-          <Text style={styles.eyebrow}>WORLD COVERAGE</Text>
+          <Text style={styles.eyebrow}>{t('map.topbar.worldCoverage')}</Text>
           <Text style={styles.title}>HexPlore</Text>
         </View>
         <View style={styles.buttons}>
@@ -76,7 +78,7 @@ export default function TopBar({ zoom, onShare, onAdd }: Props) {
       {/* zoom indicator */}
       <View style={[styles.zoomIndicator, { top: insets.top + 52 }]} pointerEvents="none">
         <Text style={styles.zoomText}>
-          ZOOM {zoom.toFixed(2)}× · {zoomLabel(zoom)}
+          {t('map.topbar.zoom', { zoom: zoom.toFixed(2), level: zoomLevel() })}
         </Text>
       </View>
 
@@ -122,7 +124,7 @@ export default function TopBar({ zoom, onShare, onAdd }: Props) {
             activeOpacity={0.5}
             onPress={() => closeMenu(onAdd)}
           >
-            <Text style={styles.menuItemLabel}>Scan photos again</Text>
+            <Text style={styles.menuItemLabel}>{t('map.topbar.scanAgain')}</Text>
             <SymbolView name="camera" size={16} tintColor="rgba(14,14,12,0.45)" />
           </TouchableOpacity>
         </Animated.View>

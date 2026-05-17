@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,20 +12,21 @@ interface Props {
 }
 
 export default function StatsBar({ worldPct, hexCount, countryCount, accent, onCountriesPress }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.container, { bottom: insets.bottom + 78 }]}>
       <View style={styles.cell}>
-        <Text style={styles.label}>WORLD COVERED</Text>
+        <Text style={styles.label}>{t('map.stats.worldCovered')}</Text>
         <Text style={[styles.value, { color: accent }]}>{worldPct.toFixed(2)}%</Text>
       </View>
       <View style={[styles.cell, styles.divider]}>
-        <Text style={styles.label}>HEXES</Text>
+        <Text style={styles.label}>{t('map.stats.hexes')}</Text>
         <Text style={styles.value}>{hexCount.toLocaleString()}</Text>
       </View>
       <TouchableOpacity style={[styles.cell, styles.divider]} onPress={onCountriesPress} activeOpacity={0.7}>
-        <Text style={styles.label}>COUNTRIES ›</Text>
+        <Text style={styles.label}>{t('map.stats.countries')}</Text>
         <Text style={styles.value}>{countryCount}</Text>
       </TouchableOpacity>
     </View>

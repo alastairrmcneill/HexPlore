@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
 const CARD_WIDTH = 390;
@@ -13,7 +14,7 @@ interface Props {
 }
 
 export default function ShareCard({ mapImageUri, worldPct, hexCount, countryCount, accent }: Props) {
-  const year = new Date().getFullYear();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.card}>
@@ -28,12 +29,12 @@ export default function ShareCard({ mapImageUri, worldPct, hexCount, countryCoun
           <Text style={[styles.pctNumber, { color: accent }]}>{worldPct.toFixed(2)}</Text>
           <Text style={[styles.pctSign, { color: accent }]}>%</Text>
         </View>
-        <Text style={styles.pctSub}>of Earth's land visited</Text>
+        <Text style={styles.pctSub}>{t('share.earthLand')}</Text>
 
         <View style={styles.statsRow}>
-          <Text style={styles.stat}>{hexCount.toLocaleString()} hexes</Text>
+          <Text style={styles.stat}>{t('share.hexes', { count: hexCount.toLocaleString() })}</Text>
           <Text style={styles.statDot}>·</Text>
-          <Text style={styles.stat}>{countryCount} countries</Text>
+          <Text style={styles.stat}>{t('share.countries', { count: countryCount })}</Text>
         </View>
 
         <Text style={styles.footer}>hexplore.app</Text>

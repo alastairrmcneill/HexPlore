@@ -1,6 +1,7 @@
 import ScanRipple from "@/features/onboarding/ScanRipple";
 import ShareCard from "@/features/share/ShareCard";
 import { track } from "@/lib/analytics";
+import { useTranslation } from "react-i18next";
 import { getAllCells, insertManualCell } from "@/lib/db/queries";
 import { getCountryCentroid, getMostVisitedCountry } from "@/lib/h3/countryUtils";
 import { latLngToCell } from "@/lib/h3/hexUtils";
@@ -49,6 +50,7 @@ interface Props {
 }
 
 export default function MapScreen({ onNavigateStats }: Props) {
+  const { t } = useTranslation();
   const { accent } = useTheme();
   const cameraRef = useRef<CameraRef>(null);
   const mapRef = useRef<MapRef>(null);
@@ -317,28 +319,28 @@ export default function MapScreen({ onNavigateStats }: Props) {
           <View style={styles.scanText}>
             {rescanPhase === "scanning" ? (
               <>
-                <Text style={styles.scanLabel}>SCANNING CAMERA ROLL</Text>
+                <Text style={styles.scanLabel}>{t('map.rescan.scanning')}</Text>
                 <Text style={[styles.scanPercent, { color: accent }]}>
                   {Math.floor(scanProgress)}
                   <Text style={[styles.scanPercentSign, { color: accent }]}>%</Text>
                 </Text>
                 <Text style={styles.scanDetail}>
-                  Checking {scanProcessed.toLocaleString()} of {scanTotal.toLocaleString()} photos for location data
+                  {t('map.rescan.detail', { processed: scanProcessed.toLocaleString(), total: scanTotal.toLocaleString() })}
                 </Text>
               </>
             ) : (
               <>
-                <Text style={styles.scanLabel}>ALL DONE</Text>
+                <Text style={styles.scanLabel}>{t('map.rescan.done')}</Text>
                 <Text style={styles.doneHexCount}>
-                  {scanHexCount === 0 ? "No new hexes found" : `${scanHexCount.toLocaleString()} hexes found`}
+                  {scanHexCount === 0 ? t('map.rescan.noNewHexes') : t('map.rescan.hexesFound', { count: scanHexCount })}
                 </Text>
-                <Text style={styles.scanDetail}>Your camera roll has been mapped.</Text>
+                <Text style={styles.scanDetail}>{t('map.rescan.mapped')}</Text>
               </>
             )}
           </View>
           {rescanPhase === "done" && (
             <TouchableOpacity style={styles.rescanCtaButton} onPress={handleRescanDismiss} activeOpacity={0.85}>
-              <Text style={styles.rescanCtaLabel}>Back to map</Text>
+              <Text style={styles.rescanCtaLabel}>{t('map.rescan.backToMap')}</Text>
               <Text style={styles.rescanCtaArrow}>→</Text>
             </TouchableOpacity>
           )}

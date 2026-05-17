@@ -3,6 +3,7 @@ import { getCellByIndex, VisitedCell } from "@/lib/db/queries";
 import { cellToCenter } from "@/lib/h3/hexUtils";
 import { enqueueGeocode } from "@/lib/media/geocoder";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 import HexNeighborThumbnail from "./HexNeighborThumbnail";
 import PhotoStrip from "./PhotoStrip";
@@ -19,9 +20,9 @@ function codeToFlag(code: string): string {
   return [...code.toUpperCase()].map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0))).join("");
 }
 
-function formatDate(ms: number | null): string {
+function formatDate(ms: number | null, locale: string): string {
   if (!ms) return "—";
-  return new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  return new Date(ms).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
@@ -34,6 +35,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 export default function CellSheet({ visible, h3index, visitedSet, accent, onClose }: Props) {
+  const { t, i18n } = useTranslation();
   const [cell, setCell] = useState<VisitedCell | null>(null);
 
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function CellSheet({ visible, h3index, visitedSet, accent, onClos
   }, [visible, h3index, cell?.geocoded_at]);
 
   const [lat, lng] = h3index ? cellToCenter(h3index) : [0, 0];
-  const dateStr = formatDate(cell?.first_photo_date ?? null);
+  const dateStr = formatDate(cell?.first_photo_date ?? null, i18n.language);
   const flag = cell?.country_code ? codeToFlag(cell.country_code) : "";
 
   // Fallback chain: place_name → country → "Locating…" (pending geocode) → coords
@@ -66,7 +68,7 @@ export default function CellSheet({ visible, h3index, visitedSet, accent, onClos
   } else if (cell?.country) {
     placeName = cell.country;
   } else if (!cell || !cell.geocoded_at) {
-    placeName = "Locating…";
+    placeName = t('map.cell.locating');
   } else {
     placeName = `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`;
   }
@@ -90,9 +92,9 @@ export default function CellSheet({ visible, h3index, visitedSet, accent, onClos
 
       {/* metric strip */}
       <View style={styles.metrics}>
-        <Metric label="FIRST PHOTO" value={dateStr} />
-        <Metric label="PHOTOS" value={(cell?.photo_count ?? 0).toLocaleString()} />
-        <Metric label="COORDS" value={`${lat.toFixed(2)}°, ${lng.toFixed(2)}°`} />
+        <Metric label={t('map.cell.firstPhoto')} value={dateStr} />
+        <Metric label={t('map.cell.photos')} value={(cell?.photo_count ?? 0).toLocaleString()} />
+        <Metric label={t('map.cell.coords')} value={`${lat.toFixed(2)}°, ${lng.toFixed(2)}°`} />
       </View>
 
       {/* photo strip */}

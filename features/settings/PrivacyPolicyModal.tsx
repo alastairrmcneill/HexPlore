@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -7,33 +8,17 @@ interface Props {
   onClose: () => void;
 }
 
-const PRIVACY_TEXT = `HexPlore is designed with privacy as a default, not an afterthought.
-
-ALL PROCESSING HAPPENS ON YOUR DEVICE
-HexPlore reads the GPS coordinates embedded in your photos to map which parts of the world you have visited. This processing happens entirely on your device. Your photos, their contents, and their locations are never uploaded, transmitted, or shared with any server or third party.
-
-ANONYMOUS USAGE ANALYTICS
-To help us understand how the app is used and where to focus improvements, HexPlore collects anonymous usage events via PostHog. These events contain no personal information — no names, no photo data, no location data — only actions like "opened the stats screen" or "shared a result." Each install is assigned a random ID that cannot be linked back to you. You can opt out by contacting us at hello@hexplore.app.
-
-DATA STORED ON YOUR DEVICE
-The only data HexPlore stores is a list of H3 hex cell identifiers (grid references) representing places you have visited, along with photo counts and dates. This data lives in a local SQLite database on your device and is removed when you delete the app.
-
-NO ACCOUNTS, NO CLOUD
-HexPlore does not have user accounts, cloud sync, or any server-side component. There is nothing to log in to and nothing to delete remotely.
-
-CONTACT
-If you have any questions about privacy, email hello@hexplore.app.`;
-
 export default function PrivacyPolicyModal({ visible, onClose }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
         <View style={styles.header}>
-          <Text style={styles.title}>Privacy Policy</Text>
+          <Text style={styles.title}>{t('privacy.title')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
-            <Text style={styles.closeLabel}>Done</Text>
+            <Text style={styles.closeLabel}>{t('privacy.done')}</Text>
           </TouchableOpacity>
         </View>
         <ScrollView
@@ -41,7 +26,7 @@ export default function PrivacyPolicyModal({ visible, onClose }: Props) {
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 32 }]}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.body}>{PRIVACY_TEXT}</Text>
+          <Text style={styles.body}>{t('privacy.body')}</Text>
         </ScrollView>
       </View>
     </Modal>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BottomSheet from '@/components/BottomSheet';
 import { cellToCenter } from '@/lib/h3/hexUtils';
@@ -24,6 +25,7 @@ function codeToFlag(code: string): string {
 export default function EmptyCellSheet({
   visible, h3index, visitedSet, accent, onClose, onMarkVisited,
 }: Props) {
+  const { t } = useTranslation();
   const [lat, lng] = h3index ? cellToCenter(h3index) : [0, 0];
   const countryCode = h3index ? landCellCountryMap.get(h3index) ?? '' : '';
   const countryName = countryCode ? (COUNTRY_NAMES[countryCode] ?? countryCode) : '';
@@ -46,7 +48,7 @@ export default function EmptyCellSheet({
             {countryName ? <Text style={styles.countryLabel}>{countryName}</Text> : null}
           </View>
           <Text style={styles.coords}>{lat.toFixed(4)}°, {lng.toFixed(4)}°</Text>
-          <Text style={styles.unvisited}>Not yet visited</Text>
+          <Text style={styles.unvisited}>{t('map.emptyCell.notVisited')}</Text>
         </View>
       </View>
 
@@ -55,7 +57,7 @@ export default function EmptyCellSheet({
         activeOpacity={0.8}
         onPress={() => onMarkVisited(h3index)}
       >
-        <Text style={styles.markBtnText}>Mark as visited</Text>
+        <Text style={styles.markBtnText}>{t('map.emptyCell.markVisited')}</Text>
         <Text style={styles.markBtnArrow}>→</Text>
       </TouchableOpacity>
     </BottomSheet>

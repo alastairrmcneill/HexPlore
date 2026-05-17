@@ -1,13 +1,16 @@
 import { COUNTRY_NAMES } from "@/constants/countryNames";
 import HomeCountrySheet from "@/features/map/HomeCountrySheet";
 import { track } from "@/lib/analytics";
+import { useLocale } from "@/lib/i18n/LocaleContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import * as StoreReview from "expo-store-review";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Linking, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AccentColourPicker from "./AccentColourPicker";
+import LanguagePicker from "./LanguagePicker";
 import PrivacyPolicyModal from "./PrivacyPolicyModal";
 import SettingsRow from "./SettingsRow";
 
@@ -22,10 +25,13 @@ function Section({ children }: { children: React.ReactNode }) {
 }
 
 export default function SettingsScreen() {
+  const { t } = useTranslation();
+  const { locale } = useLocale();
   const insets = useSafeAreaInsets();
   const [privacyVisible, setPrivacyVisible] = useState(false);
   const [homeCountry, setHomeCountry] = useState<string | null>(null);
   const [homeCountryPickerVisible, setHomeCountryPickerVisible] = useState(false);
+  const [languagePickerVisible, setLanguagePickerVisible] = useState(false);
 
   useEffect(() => {
     track("settings_viewed");
@@ -35,7 +41,7 @@ export default function SettingsScreen() {
   }, []);
 
   function getHomeCountryDisplay(): string {
-    if (!homeCountry) return "Not set";
+    if (!homeCountry) return t('settings.location.notSet');
     const name = COUNTRY_NAMES[homeCountry];
     if (!name) return homeCountry;
     const flag = homeCountry
@@ -69,20 +75,26 @@ export default function SettingsScreen() {
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.screenTitle}>Settings</Text>
+        <Text style={styles.screenTitle}>{t('settings.title')}</Text>
 
         {/* Appearance */}
-        <SectionHeader title="APPEARANCE" />
+        <SectionHeader title={t('settings.appearance.header')} />
         <Section>
-          <Text style={styles.rowLabel}>Accent colour</Text>
+          <Text style={styles.rowLabel}>{t('settings.appearance.accentColour')}</Text>
           <AccentColourPicker />
+          <SettingsRow
+            label={t('settings.appearance.language')}
+            value={t(`languages.${locale}`)}
+            onPress={() => setLanguagePickerVisible(true)}
+            isLast
+          />
         </Section>
 
         {/* Location */}
-        <SectionHeader title="LOCATION" />
+        <SectionHeader title={t('settings.location.header')} />
         <Section>
           <SettingsRow
-            label="Home Country"
+            label={t('settings.location.homeCountry')}
             value={getHomeCountryDisplay()}
             onPress={() => setHomeCountryPickerVisible(true)}
             isLast
@@ -90,23 +102,25 @@ export default function SettingsScreen() {
         </Section>
 
         {/* Feedback */}
-        <SectionHeader title="FEEDBACK" />
+        <SectionHeader title={t('settings.feedback.header')} />
         <Section>
-          <SettingsRow label="Rate HexPlore" onPress={handleRate} />
-          <SettingsRow label="Contact" value="hello@hexplore.app" onPress={handleContact} isLast />
+          <SettingsRow label={t('settings.feedback.rate')} onPress={handleRate} />
+          <SettingsRow label={t('settings.feedback.contact')} value="hello@hexplore.app" onPress={handleContact} isLast />
         </Section>
 
         {/* Legal */}
-        <SectionHeader title="LEGAL" />
+        <SectionHeader title={t('settings.legal.header')} />
         <Section>
-          <SettingsRow label="About" value={`v${APP_VERSION}`} />
-          <SettingsRow label="Privacy Policy" onPress={() => setPrivacyVisible(true)} isLast />
+          <SettingsRow label={t('settings.legal.about')} value={`v${APP_VERSION}`} />
+          <SettingsRow label={t('settings.legal.privacy')} onPress={() => setPrivacyVisible(true)} isLast />
         </Section>
 
-        <Text style={styles.footer}>HexPlore · v{APP_VERSION}</Text>
+        <Text style={styles.footer}>{t('settings.footer', { version: APP_VERSION })}</Text>
       </ScrollView>
 
       <PrivacyPolicyModal visible={privacyVisible} onClose={() => setPrivacyVisible(false)} />
+
+      <LanguagePicker visible={languagePickerVisible} onClose={() => setLanguagePickerVisible(false)} />
 
       <HomeCountrySheet
         visible={homeCountryPickerVisible}

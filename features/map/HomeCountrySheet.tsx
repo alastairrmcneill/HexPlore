@@ -2,6 +2,7 @@ import BottomSheet from "@/components/BottomSheet";
 import { COUNTRY_NAMES } from "@/constants/countryNames";
 import { track } from "@/lib/analytics";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type CountryItem = { code: string; name: string; flag: string };
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export default function HomeCountrySheet({ visible, onSelect, onDismiss, showSkip, source = "onboarding" }: Props) {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<CountryItem | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -55,10 +57,10 @@ export default function HomeCountrySheet({ visible, onSelect, onDismiss, showSki
     <BottomSheet visible={visible} onClose={handleDismiss}>
       {/* Header — always visible */}
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>HOME COUNTRY</Text>
-        <Text style={styles.title}>Where do you call home?</Text>
+        <Text style={styles.eyebrow}>{t('homeCountry.eyebrow')}</Text>
+        <Text style={styles.title}>{t('homeCountry.title')}</Text>
         {!dropdownOpen && (
-          <Text style={styles.subtitle}>We&rsquo;ll open the map centred here each time you launch the app.</Text>
+          <Text style={styles.subtitle}>{t('homeCountry.subtitle')}</Text>
         )}
       </View>
 
@@ -75,7 +77,7 @@ export default function HomeCountrySheet({ visible, onSelect, onDismiss, showSki
               <Text style={styles.selectorValue}>{selected.name}</Text>
             </>
           ) : (
-            <Text style={styles.selectorPlaceholder}>Select a country…</Text>
+            <Text style={styles.selectorPlaceholder}>{t('homeCountry.placeholder')}</Text>
           )}
         </View>
         <Text style={styles.chevron}>{dropdownOpen ? "▲" : "▼"}</Text>
@@ -109,12 +111,12 @@ export default function HomeCountrySheet({ visible, onSelect, onDismiss, showSki
             onPress={selected ? () => handleSelect(selected.code) : undefined}
             activeOpacity={selected ? 0.85 : 1}
           >
-            <Text style={[styles.saveLabel, !selected && styles.saveLabelDisabled]}>Save</Text>
+            <Text style={[styles.saveLabel, !selected && styles.saveLabelDisabled]}>{t('homeCountry.save')}</Text>
           </TouchableOpacity>
 
           {showSkip && (
             <TouchableOpacity style={styles.skipButton} onPress={handleDismiss} activeOpacity={0.7}>
-              <Text style={styles.skipLabel}>Skip for now</Text>
+              <Text style={styles.skipLabel}>{t('homeCountry.skip')}</Text>
             </TouchableOpacity>
           )}
         </View>

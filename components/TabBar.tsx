@@ -2,6 +2,7 @@ import { useTheme } from "@/lib/theme/ThemeContext";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -9,17 +10,18 @@ type TabDef =
   | { name: string; label: string; set: 'ion'; icon: keyof typeof Ionicons.glyphMap }
   | { name: string; label: string; set: 'mci'; icon: keyof typeof MaterialCommunityIcons.glyphMap };
 
-const TABS: TabDef[] = [
-  { name: "index",    label: "Map",      set: 'mci', icon: "hexagon-outline" },
-  { name: "stats",    label: "Stats",    set: 'ion', icon: "bar-chart-outline" },
-  { name: "settings", label: "Settings", set: 'ion', icon: "settings-outline" },
-];
-
 const INACTIVE_COLOR = "rgba(14,14,12,0.45)";
 
 export default function TabBar({ state, navigation }: BottomTabBarProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { accent } = useTheme();
+
+  const TABS: TabDef[] = [
+    { name: "index",    label: t('tabs.map'),      set: 'mci', icon: "hexagon-outline" },
+    { name: "stats",    label: t('tabs.stats'),    set: 'ion', icon: "bar-chart-outline" },
+    { name: "settings", label: t('tabs.settings'), set: 'ion', icon: "settings-outline" },
+  ];
 
   return (
     <View style={[styles.container, { bottom: insets.bottom + 10 }]}>

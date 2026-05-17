@@ -1,6 +1,7 @@
 import HexBloom from "@/features/onboarding/HexBloom";
 import { useTheme } from "@/lib/theme/ThemeContext";
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Animated, StyleSheet, Text, View } from "react-native";
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function MapLoadingOverlay({ visible }: Props) {
+  const { t } = useTranslation();
   const { accent } = useTheme();
   const opacity = useRef(new Animated.Value(1)).current;
   const [mounted, setMounted] = useState(true);
@@ -38,7 +40,7 @@ export default function MapLoadingOverlay({ visible }: Props) {
         <HexBloom accent={accent} />
         <View style={styles.textBlock}>
           <Text style={styles.title}>HexPlore</Text>
-          <Text style={styles.subtitle}>Loading your map…</Text>
+          <Text style={styles.subtitle}>{t('map.loading')}</Text>
         </View>
       </View>
     </Animated.View>
