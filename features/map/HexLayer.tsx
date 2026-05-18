@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function HexLayer({ visitedIndices, accent, onReady }: Props) {
-  const [landGeoJSON, setLandGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [landData, setLandData] = useState<GeoJSON.FeatureCollection | string | null>(null);
   const [visitedGeoJSON, setVisitedGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
   const onReadyRef = useRef(onReady);
   onReadyRef.current = onReady;
@@ -18,9 +18,9 @@ export default function HexLayer({ visitedIndices, accent, onReady }: Props) {
   // Build land GeoJSON in background chunks so the JS thread stays free for animation
   useEffect(() => {
     let cancelled = false;
-    getLandGeoJSONAsync().then((geojson) => {
+    getLandGeoJSONAsync().then((result) => {
       if (!cancelled) {
-        setLandGeoJSON(geojson);
+        setLandData(result);
         onReadyRef.current?.();
       }
     });
@@ -41,8 +41,8 @@ export default function HexLayer({ visitedIndices, accent, onReady }: Props) {
 
   return (
     <>
-      {landGeoJSON && (
-        <GeoJSONSource id="land-source" data={landGeoJSON}>
+      {landData && (
+        <GeoJSONSource id="land-source" data={landData}>
           <Layer
             id="land-outline"
             type="line"

@@ -1,7 +1,8 @@
 import { getPhotoIdsByCell } from "@/lib/db/queries";
 import * as MediaLibrary from "expo-media-library";
+import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
-import { FlatList, Image, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 
 interface Props {
   h3index: string;
@@ -9,33 +10,47 @@ interface Props {
 
 const MAX_PHOTOS = 5;
 
+// Survives re-renders and re-opens of the same cell — no re-fetching needed
+const _uriCache = new Map<string, string[]>();
+
 export default function PhotoStrip({ h3index }: Props) {
-  const [uris, setUris] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [uris, setUris] = useState<string[]>(() => _uriCache.get(h3index) ?? []);
+  const [loading, setLoading] = useState(!_uriCache.has(h3index));
 
   useEffect(() => {
+    if (_uriCache.has(h3index)) {
+      setUris(_uriCache.get(h3index)!);
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setUris([]);
     setLoading(true);
 
     async function load() {
       const ids = await getPhotoIdsByCell(h3index);
-      for (const id of ids.slice(0, MAX_PHOTOS)) {
-        if (cancelled) return;
-        try {
-          const info = await MediaLibrary.getAssetInfoAsync(id);
-          if (info.localUri && !cancelled) {
-            setUris((prev) => [...prev, info.localUri!]);
-          }
-        } catch {}
-      }
-      if (!cancelled) setLoading(false);
+      const batch = ids.slice(0, MAX_PHOTOS);
+
+      // Fetch all asset infos in parallel instead of sequentially
+      const results = await Promise.allSettled(
+        batch.map((id) => MediaLibrary.getAssetInfoAsync(id)),
+      );
+
+      if (cancelled) return;
+
+      const resolved = results
+        .filter((r): r is PromiseFulfilledResult<MediaLibrary.AssetInfo> => r.status === 'fulfilled')
+        .map((r) => r.value.localUri)
+        .filter((uri): uri is string => !!uri);
+
+      _uriCache.set(h3index, resolved);
+      setUris(resolved);
+      setLoading(false);
     }
 
     load();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [h3index]);
 
   if (!loading && uris.length === 0) return null;
@@ -49,7 +64,15 @@ export default function PhotoStrip({ h3index }: Props) {
         keyExtractor={(uri) => uri}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => <Image source={{ uri: item }} style={styles.thumb} />}
+        renderItem={({ item }) => (
+          <Image
+            source={{ uri: item }}
+            style={styles.thumb}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
+          />
+        )}
         ListFooterComponent={loading ? <View style={styles.placeholder} /> : null}
       />
     </View>
