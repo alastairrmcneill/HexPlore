@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support — HexPlore</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #FAFAF7;
+      color: #0E0E0C;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      padding: 48px 24px 80px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 48px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(14,14,12,0.08);
+    }
+
+    .eyebrow {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: rgba(14,14,12,0.45);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.8px;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 17px;
+      color: rgba(14,14,12,0.55);
+      margin-top: 8px;
+    }
+
+    .intro {
+      font-size: 17px;
+      color: rgba(14,14,12,0.75);
+      margin-bottom: 48px;
+      line-height: 1.65;
+    }
+
+    .section-label {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(14,14,12,0.4);
+      margin-bottom: 20px;
+    }
+
+    .faq-list {
+      margin-bottom: 56px;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid rgba(14,14,12,0.08);
+      padding: 20px 0;
+    }
+
+    .faq-item:first-child {
+      border-top: 1px solid rgba(14,14,12,0.08);
+    }
+
+    .faq-question {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0E0E0C;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .faq-answer {
+      font-size: 15px;
+      color: rgba(14,14,12,0.65);
+      line-height: 1.65;
+    }
+
+    .faq-answer a {
+      color: #0E0E0C;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .faq-answer a:hover { color: rgba(14,14,12,0.6); }
+
+    .contact-block {
+      background: #fff;
+      border: 1px solid rgba(14,14,12,0.08);
+      border-radius: 20px;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .contact-block h2 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      margin-bottom: 8px;
+    }
+
+    .contact-block p {
+      font-size: 15px;
+      color: rgba(14,14,12,0.6);
+      margin-bottom: 24px;
+      line-height: 1.55;
+    }
+
+    .contact-btn {
+      display: inline-block;
+      background: #0E0E0C;
+      color: #FAFAF7;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 30px;
+      letter-spacing: -0.1px;
+      transition: opacity 0.15s ease;
+    }
+
+    .contact-btn:hover {
+      opacity: 0.75;
+    }
+
+    .nav-links {
+      margin-top: 16px;
+    }
+
+    .nav-links a {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 11px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: rgba(14,14,12,0.4);
+      text-decoration: none;
+      margin: 0 10px;
+    }
+
+    .nav-links a:hover { color: rgba(14,14,12,0.7); }
+
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(14,14,12,0.08);
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 11px;
+      letter-spacing: 1.4px;
+      color: rgba(14,14,12,0.3);
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <p class="eyebrow">HexPlore</p>
+      <h1>Support</h1>
+      <p class="subtitle">Answers to common questions</p>
+    </header>
+
+    <p class="intro">
+      HexPlore turns your camera roll into a world coverage map — no accounts, no uploads, no fuss. If something isn't working, you'll likely find the answer below.
+    </p>
+
+    <p class="section-label">Frequently Asked Questions</p>
+
+    <div class="faq-list">
+
+      <div class="faq-item">
+        <p class="faq-question">How does HexPlore work?</p>
+        <p class="faq-answer">HexPlore reads the GPS coordinates embedded in your photos and maps each one onto a global hexagonal grid made up of roughly 50 km² cells. Each unique hex you've photographed in gets filled in on the map, and we calculate what percentage of the world's land area you've covered.</p>
+      </div>
+
+      <div class="faq-item">
+        <p class="faq-question">Are my photos or location data uploaded anywhere?</p>
+        <p class="faq-answer">No. All processing happens entirely on your device. Your photos, their contents, and their GPS coordinates never leave your iPhone. HexPlore has no server and no cloud component.</p>
+      </div>
+
+      <div class="faq-item">
+        <p class="faq-question">Why does HexPlore need access to my photo library?</p>
+        <p class="faq-answer">HexPlore reads the GPS metadata (EXIF data) embedded in your photos to figure out where each photo was taken. It does not upload, copy, or display your photos to anyone else. You can revoke access at any time in iOS Settings → Privacy & Security → Photos.</p>
+      </div>
+
+      <div class="faq-item">
+        <p class="faq-question">Some of my photos don't have location data — why?</p>
+        <p class="faq-answer">Photos only contain GPS data if Location Services were enabled for your camera app when the photo was taken. If you had location off, those photos won't contribute to your map. You can check or enable this in iOS Settings → Privacy & Security → Location Services → Camera.</p>
+      </div>
+
+      <div class="faq-item">
+        <p class="faq-question">I visited a place but it's not showing up on my map. What's wrong?</p>
+        <p class="faq-answer">HexPlore can only map places where you have geotagged photos. If you didn't take a photo (or location was off), that cell won't appear automatically. You can tap any unvisited hex on the map and use "Mark as visited" to add it manually.</p>
+      </div>
+
+      <div class="faq-item">
+        <p class="faq-question">How big is each hexagon?</p>
+        <p class="faq-answer">Each hex covers approximately 1,700 km² — roughly a 50 km × 50 km area. HexPlore uses the H3 geospatial grid at resolution 4, which divides the entire Earth's land into 74,942 cells. Your world coverage percentage is calculated against that total.</p>
+      </div>
+
+      <div class="faq-item">
+        <p class="faq-question">How is the world coverage percentage calculated?</p>
+        <p class="faq-answer">We count how many of the 74,942 land-covering H3 hexagons at resolution 4 contain at least one of your geotagged photos (or manual marks), then divide by 74,942 and express it as a percentage. Ocean cells are excluded.</p>
+      </div>
+
+      <div class="faq-item">
+        <p class="faq-question">Can I change the colour of the hexagons?</p>
+        <p class="faq-answer">Yes. Go to the Settings tab and tap Accent Colour. You can choose from six preset swatches (coral, teal, burnt orange, indigo, sage, slate) — the whole app updates immediately.</p>
+      </div>
+
+      <div class="faq-item">
+        <p class="faq-question">How do I delete all my data?</p>
+        <p class="faq-answer">Delete the app. HexPlore stores everything (your hex list, photo counts, and dates) in a local SQLite database on your device. Deleting the app removes all of it permanently. There is no server-side data to erase.</p>
+      </div>
+
+      <div class="faq-item">
+        <p class="faq-question">Does HexPlore work on Android?</p>
+        <p class="faq-answer">Not yet — HexPlore is currently iOS only. Android support may come in a future release.</p>
+      </div>
+
+      <div class="faq-item">
+        <p class="faq-question">Does HexPlore track me or show ads?</p>
+        <p class="faq-answer">HexPlore collects anonymous, non-personal usage events (e.g. "opened the stats screen") via PostHog to help us improve the app. These events contain no photos, no location data, and no identifying information. There are no ads. See our <a href="privacy-policy.html">Privacy Policy</a> for full details.</p>
+      </div>
+
+    </div>
+
+    <div class="contact-block">
+      <h2>Still need help?</h2>
+      <p>Can't find what you're looking for? Send us an email and we'll get back to you as soon as we can.</p>
+      <a class="contact-btn" href="mailto:alastair.r.mcneill@gmail.com?subject=HexPlore%20Support">Email support ↗</a>
+    </div>
+
+    <div class="nav-links" style="text-align:center; margin-top: 32px;">
+      <a href="privacy-policy.html">Privacy Policy</a>
+    </div>
+
+    <footer>HexPlore &middot; Support</footer>
+  </div>
+</body>
+</html>
