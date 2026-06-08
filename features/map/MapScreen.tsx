@@ -18,6 +18,7 @@ import type {
 import { Camera, Map } from "@maplibre/maplibre-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
+import * as StoreReview from "expo-store-review";
 import * as FileSystem from "expo-file-system/legacy";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -132,7 +133,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
   }, []);
 
   const handlePress = useCallback(
-    (event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>) => {
+    async (event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>) => {
       const [lng, lat] = event.nativeEvent.lngLat;
       const cell = latLngToCell(lat, lng);
       const isVisited = visitedSet.has(cell);
@@ -141,6 +142,14 @@ export default function MapScreen({ onNavigateStats }: Props) {
       const country = landCellCountryMap.get(cell);
       track("cell_tapped", { source: type, country: country ?? null });
       setSelectedCell({ h3index: cell, type });
+
+      const firstTapped = await AsyncStorage.getItem("review_first_hex_tapped");
+      if (!firstTapped) {
+        await AsyncStorage.setItem("review_first_hex_tapped", "true");
+        if (await StoreReview.hasAction()) {
+          StoreReview.requestReview();
+        }
+      }
     },
     [landSet, visitedSet],
   );

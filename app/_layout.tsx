@@ -8,10 +8,21 @@ import { LocaleProvider } from '@/lib/i18n/LocaleContext';
 import '@/lib/i18n';
 import { runMigrations } from '@/lib/db/migrations';
 import { initAnalytics, posthog } from '@/lib/analytics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as StoreReview from 'expo-store-review';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
+
+async function trackAppOpen() {
+  const raw = await AsyncStorage.getItem('app_open_count');
+  const count = raw ? parseInt(raw, 10) + 1 : 1;
+  await AsyncStorage.setItem('app_open_count', String(count));
+  if (count === 2 && (await StoreReview.hasAction())) {
+    StoreReview.requestReview();
+  }
+}
 
 function ScreenTracker() {
   const pathname = usePathname();
@@ -32,6 +43,7 @@ export default function RootLayout() {
   useEffect(() => {
     runMigrations().catch(console.error);
     initAnalytics().catch(console.error);
+    trackAppOpen().catch(console.error);
   }, []);
 
   return (
