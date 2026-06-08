@@ -16,9 +16,11 @@ interface Props {
   zoom: number;
   onShare: () => void;
   onAdd: () => void;
+  mapMode: "minimal" | "street";
+  onToggleMapMode: () => void;
 }
 
-export default function TopBar({ zoom, onShare, onAdd }: Props) {
+export default function TopBar({ zoom, onShare, onAdd, mapMode, onToggleMapMode }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -68,6 +70,9 @@ export default function TopBar({ zoom, onShare, onAdd }: Props) {
         <View style={styles.buttons}>
           <TouchableOpacity style={styles.glassBtn} onPress={onShare} activeOpacity={0.75}>
             <SymbolView name="square.and.arrow.up" size={18} tintColor="#0E0E0C" />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.glassBtn, mapMode === "street" && styles.glassBtnActive]} onPress={onToggleMapMode} activeOpacity={0.75}>
+            <SymbolView name={mapMode === "street" ? "map.fill" : "map"} size={18} tintColor={mapMode === "street" ? "#FAFAF7" : "#0E0E0C"} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.glassBtn} onPress={openMenu} activeOpacity={0.75}>
             <Text style={styles.glassBtnLabelLarge}>+</Text>
@@ -181,6 +186,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
+  },
+  glassBtnActive: {
+    backgroundColor: '#0E0E0C',
+    borderColor: 'transparent',
   },
   glassBtnLabelLarge: {
     fontSize: 24,

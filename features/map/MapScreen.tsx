@@ -1,7 +1,6 @@
 import ScanRipple from "@/features/onboarding/ScanRipple";
 import ShareCard from "@/features/share/ShareCard";
 import { track } from "@/lib/analytics";
-import { useTranslation } from "react-i18next";
 import { getAllCells, insertManualCell } from "@/lib/db/queries";
 import { getCountryCentroid, getMostVisitedCountry } from "@/lib/h3/countryUtils";
 import { latLngToCell } from "@/lib/h3/hexUtils";
@@ -18,8 +17,10 @@ import type {
 } from "@maplibre/maplibre-react-native";
 import { Camera, Map } from "@maplibre/maplibre-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system/legacy";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, NativeSyntheticEvent, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Share from "react-native-share";
 import ViewShot from "react-native-view-shot";
@@ -37,11 +38,16 @@ import ZoomControls from "./ZoomControls";
 const INITIAL_CENTER: [number, number] = [10, 20]; // [lng, lat]
 const INITIAL_ZOOM = 1.5;
 
-const MAP_STYLE = {
+const MAP_STYLE_MINIMAL = {
   version: 8 as const,
   sources: {},
   layers: [{ id: "background", type: "background" as const, paint: { "background-color": "#FAFAF7" } }],
 };
+
+const MAPTILER_KEY = Constants.expoConfig?.extra?.maptilerKey ?? "";
+const MAP_STYLE_STREET = MAPTILER_KEY
+  ? `https://api.maptiler.com/maps/dataviz/style.json?key=${MAPTILER_KEY}`
+  : MAP_STYLE_MINIMAL;
 
 type SelectedCell = { h3index: string; type: "visited" | "empty" };
 
@@ -67,6 +73,8 @@ export default function MapScreen({ onNavigateStats }: Props) {
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const [shareMapUri, setShareMapUri] = useState<string | null>(null);
   const [homeCountrySheetVisible, setHomeCountrySheetVisible] = useState(false);
+
+  const [mapMode, setMapMode] = useState<"minimal" | "street">("minimal");
 
   const [rescanPhase, setRescanPhase] = useState<null | "scanning" | "done">(null);
   const [scanProgress, setScanProgress] = useState(0);
@@ -248,21 +256,27 @@ export default function MapScreen({ onNavigateStats }: Props) {
       <Map
         ref={mapRef}
         style={StyleSheet.absoluteFill}
-        mapStyle={MAP_STYLE}
+        mapStyle={mapMode === "street" ? MAP_STYLE_STREET : MAP_STYLE_MINIMAL}
         onRegionDidChange={handleRegionChange}
         onPress={handlePress}
         compass={false}
         logo={false}
-        attribution={false}
+        attribution={mapMode === "street"}
         touchRotate={false}
         touchPitch={false}
       >
         <Camera ref={cameraRef} initialViewState={{ center: INITIAL_CENTER, zoom: INITIAL_ZOOM }} minZoom={1} />
-        <GraticuleLayer zoom={zoom} />
+        {mapMode === "minimal" && <GraticuleLayer zoom={zoom} />}
         <HexLayer visitedIndices={visitedIndices} accent={accent} onReady={() => setHexLayerReady(true)} />
       </Map>
 
-      <TopBar zoom={zoom} onShare={handleShare} onAdd={handleRescan} />
+      <TopBar
+        zoom={zoom}
+        onShare={handleShare}
+        onAdd={handleRescan}
+        mapMode={mapMode}
+        onToggleMapMode={() => setMapMode((m) => (m === "minimal" ? "street" : "minimal"))}
+      />
 
       {/* Off-screen share card — map image is injected before capture */}
       <ViewShot ref={viewShotRef} style={styles.offscreen} options={{ format: "png", quality: 1 }}>
@@ -319,28 +333,33 @@ export default function MapScreen({ onNavigateStats }: Props) {
           <View style={styles.scanText}>
             {rescanPhase === "scanning" ? (
               <>
-                <Text style={styles.scanLabel}>{t('map.rescan.scanning')}</Text>
+                <Text style={styles.scanLabel}>{t("map.rescan.scanning")}</Text>
                 <Text style={[styles.scanPercent, { color: accent }]}>
                   {Math.floor(scanProgress)}
                   <Text style={[styles.scanPercentSign, { color: accent }]}>%</Text>
                 </Text>
                 <Text style={styles.scanDetail}>
-                  {t('map.rescan.detail', { processed: scanProcessed.toLocaleString(), total: scanTotal.toLocaleString() })}
+                  {t("map.rescan.detail", {
+                    processed: scanProcessed.toLocaleString(),
+                    total: scanTotal.toLocaleString(),
+                  })}
                 </Text>
               </>
             ) : (
               <>
-                <Text style={styles.scanLabel}>{t('map.rescan.done')}</Text>
+                <Text style={styles.scanLabel}>{t("map.rescan.done")}</Text>
                 <Text style={styles.doneHexCount}>
-                  {scanHexCount === 0 ? t('map.rescan.noNewHexes') : t('map.rescan.hexesFound', { count: scanHexCount })}
+                  {scanHexCount === 0
+                    ? t("map.rescan.noNewHexes")
+                    : t("map.rescan.hexesFound", { count: scanHexCount })}
                 </Text>
-                <Text style={styles.scanDetail}>{t('map.rescan.mapped')}</Text>
+                <Text style={styles.scanDetail}>{t("map.rescan.mapped")}</Text>
               </>
             )}
           </View>
           {rescanPhase === "done" && (
             <TouchableOpacity style={styles.rescanCtaButton} onPress={handleRescanDismiss} activeOpacity={0.85}>
-              <Text style={styles.rescanCtaLabel}>{t('map.rescan.backToMap')}</Text>
+              <Text style={styles.rescanCtaLabel}>{t("map.rescan.backToMap")}</Text>
               <Text style={styles.rescanCtaArrow}>→</Text>
             </TouchableOpacity>
           )}

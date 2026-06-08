@@ -4,10 +4,11 @@ import { track } from "@/lib/analytics";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
+import * as Clipboard from "expo-clipboard";
 import * as StoreReview from "expo-store-review";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Linking, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Linking, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AccentColourPicker from "./AccentColourPicker";
 import LanguagePicker from "./LanguagePicker";
@@ -32,6 +33,9 @@ export default function SettingsScreen() {
   const [homeCountry, setHomeCountry] = useState<string | null>(null);
   const [homeCountryPickerVisible, setHomeCountryPickerVisible] = useState(false);
   const [languagePickerVisible, setLanguagePickerVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     track("settings_viewed");
@@ -64,8 +68,26 @@ export default function SettingsScreen() {
     }
   }
 
-  function handleContact() {
-    Linking.openURL("mailto:alastair.r.mcneill@gmail.com");
+  function showToast(message: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToastMessage(message);
+    Animated.sequence([
+      Animated.timing(toastOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+      Animated.delay(1800),
+      Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start();
+    toastTimer.current = setTimeout(() => setToastMessage(""), 2400);
+  }
+
+  async function handleContact() {
+    const url = "mailto:alastair.r.mcneill@gmail.com";
+    const canOpen = await Linking.canOpenURL(url);
+    if (canOpen) {
+      Linking.openURL(url);
+    } else {
+      await Clipboard.setStringAsync("alastair.r.mcneill@gmail.com");
+      showToast("Email copied to clipboard");
+    }
   }
 
   return (
@@ -119,6 +141,12 @@ export default function SettingsScreen() {
       </ScrollView>
 
       <PrivacyPolicyModal visible={privacyVisible} onClose={() => setPrivacyVisible(false)} />
+
+      {toastMessage !== "" && (
+        <Animated.View style={[styles.toast, { opacity: toastOpacity, bottom: insets.bottom + 100 }]} pointerEvents="none">
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </Animated.View>
+      )}
 
       <LanguagePicker visible={languagePickerVisible} onClose={() => setLanguagePickerVisible(false)} />
 
@@ -178,5 +206,19 @@ const styles = StyleSheet.create({
     color: "rgba(14,14,12,0.3)",
     textAlign: "center",
     marginTop: 40,
+  },
+  toast: {
+    position: "absolute",
+    alignSelf: "center",
+    backgroundColor: "rgba(14,14,12,0.82)",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 22,
+  },
+  toastText: {
+    color: "#FAFAF7",
+    fontSize: 14,
+    fontWeight: "500",
+    letterSpacing: -0.2,
   },
 });

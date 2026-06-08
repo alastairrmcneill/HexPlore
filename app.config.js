@@ -5,5 +5,6 @@ export default {
   extra: {
     posthogProjectToken: process.env.POSTHOG_PROJECT_TOKEN,
     posthogHost: process.env.POSTHOG_HOST,
+    maptilerKey: process.env.MAPTILER_KEY,
   },
 };
