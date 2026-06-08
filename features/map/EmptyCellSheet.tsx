@@ -17,7 +17,9 @@ interface Props {
 }
 
 function codeToFlag(code: string): string {
-  return [...code.toUpperCase()]
+  const normalized = code.includes("-") ? code.split("-").pop()! : code;
+  if (normalized.length !== 2) return "";
+  return [...normalized.toUpperCase()]
     .map(c => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0)))
     .join('');
 }
