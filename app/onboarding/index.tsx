@@ -18,7 +18,7 @@ const ONBOARDING_KEY = "onboarding_complete";
 export default function OnboardingScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { accent } = useTheme();
+  const { accent, colours } = useTheme();
   const insets = useSafeAreaInsets();
 
   const [phase, setPhase] = useState<Phase>("welcome");
@@ -85,16 +85,16 @@ export default function OnboardingScreen() {
 
       {phase === "welcome" && (
         <View
-          style={[styles.welcome, { paddingTop: Math.max(insets.top, 56), paddingBottom: Math.max(insets.bottom, 34) }]}
+          style={[styles.welcome, { backgroundColor: colours.background, paddingTop: Math.max(insets.top, 56), paddingBottom: Math.max(insets.bottom, 34) }]}
         >
           <View style={styles.bloomContainer}>
             <HexBloom accent={accent} />
           </View>
 
           <View style={styles.copy}>
-            <Text style={styles.eyebrow}>{t('onboarding.eyebrow')}</Text>
-            <Text style={styles.headline}>{t('onboarding.headline')}</Text>
-            <Text style={styles.body}>{t('onboarding.body')}</Text>
+            <Text style={[styles.eyebrow, { color: colours.textMuted }]}>{t('onboarding.eyebrow')}</Text>
+            <Text style={[styles.headline, { color: colours.text }]}>{t('onboarding.headline')}</Text>
+            <Text style={[styles.body, { color: colours.textMuted }]}>{t('onboarding.body')}</Text>
           </View>
 
           {permDenied && (
@@ -110,25 +110,25 @@ export default function OnboardingScreen() {
           )}
 
           <View style={styles.ctaSection}>
-            <TouchableOpacity style={styles.ctaButton} onPress={handleScan} activeOpacity={0.85}>
-              <Text style={styles.ctaLabel}>{t('onboarding.cta')}</Text>
-              <Text style={styles.ctaArrow}>→</Text>
+            <TouchableOpacity style={[styles.ctaButton, { backgroundColor: colours.text }]} onPress={handleScan} activeOpacity={0.85}>
+              <Text style={[styles.ctaLabel, { color: colours.background }]}>{t('onboarding.cta')}</Text>
+              <Text style={[styles.ctaArrow, { color: colours.background }]}>→</Text>
             </TouchableOpacity>
-            <Text style={styles.safetyNote}>{t('onboarding.safetyNote')}</Text>
+            <Text style={[styles.safetyNote, { color: colours.textFaint }]}>{t('onboarding.safetyNote')}</Text>
           </View>
         </View>
       )}
 
       {phase === "scanning" && (
-        <View style={styles.scanContainer}>
+        <View style={[styles.scanContainer, { backgroundColor: colours.background }]}>
           <ScanRipple accent={accent} progress={progress} />
           <View style={styles.scanText}>
-            <Text style={styles.scanLabel}>{t('onboarding.scanning.label')}</Text>
+            <Text style={[styles.scanLabel, { color: colours.textMuted }]}>{t('onboarding.scanning.label')}</Text>
             <Text style={[styles.scanPercent, { color: accent }]}>
               {Math.floor(progress)}
               <Text style={[styles.scanPercentSign, { color: accent }]}>%</Text>
             </Text>
-            <Text style={styles.scanDetail}>
+            <Text style={[styles.scanDetail, { color: colours.textMuted }]}>
               {t('onboarding.scanning.detail', { processed: processed.toLocaleString(), total: total.toLocaleString() })}
             </Text>
           </View>
@@ -136,30 +136,30 @@ export default function OnboardingScreen() {
       )}
 
       {phase === "done" && (
-        <View style={[styles.scanContainer, { paddingHorizontal: 20 }]}>
+        <View style={[styles.scanContainer, { backgroundColor: colours.background, paddingHorizontal: 20 }]}>
           <ScanRipple accent={accent} progress={100} />
           <View style={styles.scanText}>
             {hexCount === 0 ? (
               <>
-                <Text style={styles.scanLabel}>{t('onboarding.done.labelNoHexes')}</Text>
-                <Text style={styles.doneHexCount}>{t('onboarding.done.noHexes')}</Text>
-                <Text style={styles.scanDetail}>{t('onboarding.done.detailNoHexes')}</Text>
+                <Text style={[styles.scanLabel, { color: colours.textMuted }]}>{t('onboarding.done.labelNoHexes')}</Text>
+                <Text style={[styles.doneHexCount, { color: colours.text }]}>{t('onboarding.done.noHexes')}</Text>
+                <Text style={[styles.scanDetail, { color: colours.textMuted }]}>{t('onboarding.done.detailNoHexes')}</Text>
               </>
             ) : (
               <>
-                <Text style={styles.scanLabel}>{t('onboarding.done.labelDone')}</Text>
-                <Text style={styles.doneHexCount}>{t('onboarding.done.hexesFound', { count: hexCount })}</Text>
-                <Text style={styles.scanDetail}>{t('onboarding.done.detailMapped')}</Text>
+                <Text style={[styles.scanLabel, { color: colours.textMuted }]}>{t('onboarding.done.labelDone')}</Text>
+                <Text style={[styles.doneHexCount, { color: colours.text }]}>{t('onboarding.done.hexesFound', { count: hexCount })}</Text>
+                <Text style={[styles.scanDetail, { color: colours.textMuted }]}>{t('onboarding.done.detailMapped')}</Text>
               </>
             )}
           </View>
           <TouchableOpacity
-            style={[styles.ctaButton, { marginTop: 32 }]}
+            style={[styles.ctaButton, { backgroundColor: colours.text, marginTop: 32 }]}
             onPress={handleSeeResults}
             activeOpacity={0.85}
           >
-            <Text style={styles.ctaLabel}>{hexCount === 0 ? t('onboarding.done.ctaExplore') : t('onboarding.done.ctaResults')}</Text>
-            <Text style={styles.ctaArrow}>→</Text>
+            <Text style={[styles.ctaLabel, { color: colours.background }]}>{hexCount === 0 ? t('onboarding.done.ctaExplore') : t('onboarding.done.ctaResults')}</Text>
+            <Text style={[styles.ctaArrow, { color: colours.background }]}>→</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -170,7 +170,6 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   welcome: {
     flex: 1,
-    backgroundColor: "#FAFAF7",
     flexDirection: "column",
   },
   bloomContainer: {
@@ -186,14 +185,12 @@ const styles = StyleSheet.create({
     fontFamily: "ui-monospace",
     fontSize: 11,
     letterSpacing: 2,
-    color: "rgba(14,14,12,0.5)",
     textTransform: "uppercase",
   },
   headline: {
     fontSize: 38,
     lineHeight: 39,
     fontWeight: "600",
-    color: "#0E0E0C",
     marginTop: 14,
     marginBottom: 12,
     letterSpacing: -1,
@@ -201,7 +198,6 @@ const styles = StyleSheet.create({
   body: {
     fontSize: 15.5,
     lineHeight: 22.5,
-    color: "rgba(14,14,12,0.62)",
   },
   permBanner: {
     marginHorizontal: 20,
@@ -216,7 +212,6 @@ const styles = StyleSheet.create({
   permBannerText: {
     fontSize: 13.5,
     lineHeight: 19,
-    color: "rgba(14,14,12,0.72)",
   },
   permBannerLink: {
     color: "#C94030",
@@ -228,7 +223,6 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   ctaButton: {
-    backgroundColor: "#0E0E0C",
     borderRadius: 18,
     paddingVertical: 17,
     paddingHorizontal: 18,
@@ -237,26 +231,22 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   ctaLabel: {
-    color: "#FAFAF7",
     fontSize: 16,
     fontWeight: "500",
     letterSpacing: -0.16,
   },
   ctaArrow: {
-    color: "#FAFAF7",
     fontSize: 18,
   },
   safetyNote: {
     textAlign: "center",
     fontSize: 12.5,
-    color: "rgba(14,14,12,0.42)",
     marginTop: 12,
   },
 
   // scanning / done
   scanContainer: {
     flex: 1,
-    backgroundColor: "#FAFAF7",
     alignItems: "center",
     justifyContent: "center",
     gap: 20,
@@ -269,7 +259,6 @@ const styles = StyleSheet.create({
     fontFamily: "ui-monospace",
     fontSize: 11,
     letterSpacing: 2,
-    color: "rgba(14,14,12,0.5)",
     textTransform: "uppercase",
   },
   scanPercent: {
@@ -284,7 +273,6 @@ const styles = StyleSheet.create({
   },
   scanDetail: {
     fontSize: 13,
-    color: "rgba(14,14,12,0.55)",
     marginTop: 10,
     textAlign: "center",
     maxWidth: 260,
@@ -293,7 +281,6 @@ const styles = StyleSheet.create({
   doneHexCount: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#0E0E0C",
     marginTop: 8,
   },
 });

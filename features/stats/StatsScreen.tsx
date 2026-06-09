@@ -12,9 +12,10 @@ import HeroNumber from './HeroNumber';
 import HexesPerYearChart from './HexesPerYearChart';
 import BraggingShelf from './BraggingShelf';
 import CountryList, { CountryStat } from './CountryList';
+import InsightCards from './InsightCards';
 
 export default function StatsScreen() {
-  const { accent } = useTheme();
+  const { accent, colours } = useTheme();
   const insets = useSafeAreaInsets();
 
   const [cells, setCells] = useState<VisitedCell[]>([]);
@@ -30,10 +31,8 @@ export default function StatsScreen() {
   }, []);
 
   useEffect(() => { track('stats_viewed'); }, []);
-
   useEffect(() => { load(); }, [load]);
 
-  // Derive country stats from landCellCountryMap (reliable, no geocoding dependency)
   const countryVisits = new Map<string, number>();
   for (const cell of cells) {
     const code = landCellCountryMap.get(cell.h3index) ?? cell.country_code;
@@ -55,7 +54,7 @@ export default function StatsScreen() {
 
   return (
     <ScrollView
-      style={styles.scroll}
+      style={[styles.scroll, { backgroundColor: colours.background }]}
       contentContainerStyle={[
         styles.content,
         { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 },
@@ -64,11 +63,11 @@ export default function StatsScreen() {
     >
       <HeroNumber worldPct={worldPct} hexCount={hexCount} accent={accent} />
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: colours.border }]} />
 
       <HexesPerYearChart years={yearBars} accent={accent} />
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: colours.border }]} />
 
       <BraggingShelf
         hexCount={hexCount}
@@ -77,9 +76,11 @@ export default function StatsScreen() {
         accent={accent}
       />
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: colours.border }]} />
 
       <CountryList stats={countryStats} accent={accent} />
+
+      <InsightCards cells={cells} countryStats={countryStats} accent={accent} />
     </ScrollView>
   );
 }
@@ -87,14 +88,12 @@ export default function StatsScreen() {
 const styles = StyleSheet.create({
   scroll: {
     flex: 1,
-    backgroundColor: '#FAFAF7',
   },
   content: {
     flexGrow: 1,
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(14,14,12,0.06)',
     marginHorizontal: 22,
     marginTop: 24,
   },

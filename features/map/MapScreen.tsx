@@ -40,16 +40,18 @@ import ZoomControls from "./ZoomControls";
 const INITIAL_CENTER: [number, number] = [10, 20]; // [lng, lat]
 const INITIAL_ZOOM = 1.5;
 
-const MAP_STYLE_MINIMAL = {
-  version: 8 as const,
-  sources: {},
-  layers: [{ id: "background", type: "background" as const, paint: { "background-color": "#FAFAF7" } }],
-};
+function makeMinimalStyle(bg: string) {
+  return {
+    version: 8 as const,
+    sources: {},
+    layers: [{ id: "background", type: "background" as const, paint: { "background-color": bg } }],
+  };
+}
 
 const MAPTILER_KEY = Constants.expoConfig?.extra?.maptilerKey ?? "";
 const MAP_STYLE_STREET = MAPTILER_KEY
   ? `https://api.maptiler.com/maps/dataviz/style.json?key=${MAPTILER_KEY}`
-  : MAP_STYLE_MINIMAL;
+  : null;
 
 type SelectedCell = { h3index: string; type: "visited" | "empty" };
 
@@ -59,7 +61,7 @@ interface Props {
 
 export default function MapScreen({ onNavigateStats }: Props) {
   const { t } = useTranslation();
-  const { accent } = useTheme();
+  const { accent, colours } = useTheme();
   const cameraRef = useRef<CameraRef>(null);
   const mapRef = useRef<MapRef>(null);
   const viewShotRef = useRef<ViewShot>(null);
@@ -269,7 +271,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
       <Map
         ref={mapRef}
         style={StyleSheet.absoluteFill}
-        mapStyle={mapMode === "street" ? MAP_STYLE_STREET : MAP_STYLE_MINIMAL}
+        mapStyle={mapMode === "street" && MAP_STYLE_STREET ? MAP_STYLE_STREET : makeMinimalStyle(colours.background)}
         onRegionDidChange={handleRegionChange}
         onPress={handlePress}
         compass={false}
@@ -341,17 +343,17 @@ export default function MapScreen({ onNavigateStats }: Props) {
       <MapLoadingOverlay visible={!hexLayerReady} />
 
       <Modal visible={rescanPhase !== null} animationType="slide" transparent={false} statusBarTranslucent>
-        <View style={styles.rescanContainer}>
+        <View style={[styles.rescanContainer, { backgroundColor: colours.background }]}>
           <ScanRipple accent={accent} progress={scanProgress} />
           <View style={styles.scanText}>
             {rescanPhase === "scanning" ? (
               <>
-                <Text style={styles.scanLabel}>{t("map.rescan.scanning")}</Text>
+                <Text style={[styles.scanLabel, { color: colours.textMuted }]}>{t("map.rescan.scanning")}</Text>
                 <Text style={[styles.scanPercent, { color: accent }]}>
                   {Math.floor(scanProgress)}
                   <Text style={[styles.scanPercentSign, { color: accent }]}>%</Text>
                 </Text>
-                <Text style={styles.scanDetail}>
+                <Text style={[styles.scanDetail, { color: colours.textMuted }]}>
                   {t("map.rescan.detail", {
                     processed: scanProcessed.toLocaleString(),
                     total: scanTotal.toLocaleString(),
@@ -360,20 +362,20 @@ export default function MapScreen({ onNavigateStats }: Props) {
               </>
             ) : (
               <>
-                <Text style={styles.scanLabel}>{t("map.rescan.done")}</Text>
-                <Text style={styles.doneHexCount}>
+                <Text style={[styles.scanLabel, { color: colours.textMuted }]}>{t("map.rescan.done")}</Text>
+                <Text style={[styles.doneHexCount, { color: colours.text }]}>
                   {scanHexCount === 0
                     ? t("map.rescan.noNewHexes")
                     : t("map.rescan.hexesFound", { count: scanHexCount })}
                 </Text>
-                <Text style={styles.scanDetail}>{t("map.rescan.mapped")}</Text>
+                <Text style={[styles.scanDetail, { color: colours.textMuted }]}>{t("map.rescan.mapped")}</Text>
               </>
             )}
           </View>
           {rescanPhase === "done" && (
-            <TouchableOpacity style={styles.rescanCtaButton} onPress={handleRescanDismiss} activeOpacity={0.85}>
-              <Text style={styles.rescanCtaLabel}>{t("map.rescan.backToMap")}</Text>
-              <Text style={styles.rescanCtaArrow}>→</Text>
+            <TouchableOpacity style={[styles.rescanCtaButton, { backgroundColor: colours.text }]} onPress={handleRescanDismiss} activeOpacity={0.85}>
+              <Text style={[styles.rescanCtaLabel, { color: colours.background }]}>{t("map.rescan.backToMap")}</Text>
+              <Text style={[styles.rescanCtaArrow, { color: colours.background }]}>→</Text>
             </TouchableOpacity>
           )}
         </View>

@@ -2,13 +2,14 @@ import { COUNTRY_NAMES } from "@/constants/countryNames";
 import HomeCountrySheet from "@/features/map/HomeCountrySheet";
 import { track } from "@/lib/analytics";
 import { useLocale } from "@/lib/i18n/LocaleContext";
+import { useTheme, ColourScheme } from "@/lib/theme/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import * as Clipboard from "expo-clipboard";
 import * as StoreReview from "expo-store-review";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Animated, Linking, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AccentColourPicker from "./AccentColourPicker";
 import LanguagePicker from "./LanguagePicker";
@@ -17,17 +18,24 @@ import SettingsRow from "./SettingsRow";
 
 const APP_VERSION = Constants.expoConfig?.version ?? "0.1";
 
-function SectionHeader({ title }: { title: string }) {
-  return <Text style={styles.sectionHeader}>{title}</Text>;
+const SCHEME_OPTIONS: { value: ColourScheme; label: string }[] = [
+  { value: 'light', label: 'Light' },
+  { value: 'system', label: 'System' },
+  { value: 'dark', label: 'Dark' },
+];
+
+function SectionHeader({ title, colours }: { title: string; colours: any }) {
+  return <Text style={[styles.sectionHeader, { color: colours.textFaint }]}>{title}</Text>;
 }
 
-function Section({ children }: { children: React.ReactNode }) {
-  return <View style={styles.section}>{children}</View>;
+function Section({ children, colours }: { children: React.ReactNode; colours: any }) {
+  return <View style={[styles.section, { backgroundColor: colours.surfaceSolid, borderColor: colours.border }]}>{children}</View>;
 }
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const { colours, colourScheme, setColourScheme } = useTheme();
   const insets = useSafeAreaInsets();
   const [privacyVisible, setPrivacyVisible] = useState(false);
   const [homeCountry, setHomeCountry] = useState<string | null>(null);
@@ -93,17 +101,43 @@ export default function SettingsScreen() {
   return (
     <>
       <ScrollView
-        style={styles.scroll}
+        style={[styles.scroll, { backgroundColor: colours.background }]}
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.screenTitle}>{t('settings.title')}</Text>
+        <Text style={[styles.screenTitle, { color: colours.text }]}>{t('settings.title')}</Text>
 
         {/* Appearance */}
-        <SectionHeader title={t('settings.appearance.header')} />
-        <Section>
-          <Text style={styles.rowLabel}>{t('settings.appearance.accentColour')}</Text>
+        <SectionHeader title={t('settings.appearance.header')} colours={colours} />
+        <Section colours={colours}>
+          <Text style={[styles.rowLabel, { color: colours.text }]}>{t('settings.appearance.accentColour')}</Text>
           <AccentColourPicker />
+
+          {/* Theme picker */}
+          <View style={[styles.themePickerRow, { borderTopColor: colours.border }]}>
+            <Text style={[styles.rowLabel, { color: colours.text }]}>{t('settings.appearance.theme')}</Text>
+            <View style={[styles.segmentedControl, { backgroundColor: colours.background, borderColor: colours.border }]}>
+              {SCHEME_OPTIONS.map(opt => {
+                const active = colourScheme === opt.value;
+                return (
+                  <TouchableOpacity
+                    key={opt.value}
+                    style={[
+                      styles.segment,
+                      active && { backgroundColor: colours.text },
+                    ]}
+                    onPress={() => setColourScheme(opt.value)}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={[styles.segmentLabel, { color: active ? colours.background : colours.textMuted }]}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
           <SettingsRow
             label={t('settings.appearance.language')}
             value={t(`languages.${locale}`)}
@@ -113,8 +147,8 @@ export default function SettingsScreen() {
         </Section>
 
         {/* Location */}
-        <SectionHeader title={t('settings.location.header')} />
-        <Section>
+        <SectionHeader title={t('settings.location.header')} colours={colours} />
+        <Section colours={colours}>
           <SettingsRow
             label={t('settings.location.homeCountry')}
             value={getHomeCountryDisplay()}
@@ -124,27 +158,27 @@ export default function SettingsScreen() {
         </Section>
 
         {/* Feedback */}
-        <SectionHeader title={t('settings.feedback.header')} />
-        <Section>
+        <SectionHeader title={t('settings.feedback.header')} colours={colours} />
+        <Section colours={colours}>
           <SettingsRow label={t('settings.feedback.rate')} onPress={handleRate} />
           <SettingsRow label={t('settings.feedback.contact')} value="alastair.r.mcneill@gmail.com" onPress={handleContact} isLast />
         </Section>
 
         {/* Legal */}
-        <SectionHeader title={t('settings.legal.header')} />
-        <Section>
+        <SectionHeader title={t('settings.legal.header')} colours={colours} />
+        <Section colours={colours}>
           <SettingsRow label={t('settings.legal.about')} value={`v${APP_VERSION}`} />
           <SettingsRow label={t('settings.legal.privacy')} onPress={() => setPrivacyVisible(true)} isLast />
         </Section>
 
-        <Text style={styles.footer}>{t('settings.footer', { version: APP_VERSION })}</Text>
+        <Text style={[styles.footer, { color: colours.textFaint }]}>{t('settings.footer', { version: APP_VERSION })}</Text>
       </ScrollView>
 
       <PrivacyPolicyModal visible={privacyVisible} onClose={() => setPrivacyVisible(false)} />
 
       {toastMessage !== "" && (
-        <Animated.View style={[styles.toast, { opacity: toastOpacity, bottom: insets.bottom + 100 }]} pointerEvents="none">
-          <Text style={styles.toastText}>{toastMessage}</Text>
+        <Animated.View style={[styles.toast, { opacity: toastOpacity, bottom: insets.bottom + 100, backgroundColor: colours.text }]} pointerEvents="none">
+          <Text style={[styles.toastText, { color: colours.background }]}>{toastMessage}</Text>
         </Animated.View>
       )}
 
@@ -164,7 +198,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   scroll: {
     flex: 1,
-    backgroundColor: "#FAFAF7",
   },
   content: {
     paddingHorizontal: 22,
@@ -173,50 +206,65 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "600",
     letterSpacing: -0.8,
-    color: "#0E0E0C",
     marginBottom: 28,
   },
   sectionHeader: {
     fontFamily: "ui-monospace",
     fontSize: 10.5,
     letterSpacing: 2,
-    color: "rgba(14,14,12,0.4)",
     textTransform: "uppercase",
     marginTop: 28,
     marginBottom: 8,
   },
   section: {
-    backgroundColor: "#fff",
     borderRadius: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: "rgba(14,14,12,0.06)",
   },
   rowLabel: {
     fontSize: 16,
     fontWeight: "500",
     letterSpacing: -0.2,
-    color: "#0E0E0C",
     paddingTop: 16,
+  },
+  themePickerRow: {
+    borderTopWidth: 1,
+    paddingBottom: 14,
+  },
+  segmentedControl: {
+    flexDirection: 'row',
+    borderRadius: 10,
+    borderWidth: 1,
+    marginTop: 12,
+    padding: 3,
+    gap: 2,
+  },
+  segment: {
+    flex: 1,
+    paddingVertical: 7,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  segmentLabel: {
+    fontSize: 13.5,
+    fontWeight: '500',
+    letterSpacing: -0.1,
   },
   footer: {
     fontFamily: "ui-monospace",
     fontSize: 10,
     letterSpacing: 1.4,
-    color: "rgba(14,14,12,0.3)",
     textAlign: "center",
     marginTop: 40,
   },
   toast: {
     position: "absolute",
     alignSelf: "center",
-    backgroundColor: "rgba(14,14,12,0.82)",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 22,
   },
   toastText: {
-    color: "#FAFAF7",
     fontSize: 14,
     fontWeight: "500",
     letterSpacing: -0.2,

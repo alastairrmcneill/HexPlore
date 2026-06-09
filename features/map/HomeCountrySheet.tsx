@@ -1,6 +1,7 @@
 import BottomSheet from "@/components/BottomSheet";
 import { COUNTRY_NAMES } from "@/constants/countryNames";
 import { track } from "@/lib/analytics";
+import { useTheme } from "@/lib/theme/ThemeContext";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -15,7 +16,6 @@ function getFlagEmoji(code: string): string {
     .join("");
 }
 
-// Pre-build sorted list once — only 2-letter ISO codes get valid flag emoji
 const COUNTRY_LIST: CountryItem[] = Object.entries(COUNTRY_NAMES)
   .filter(([code]) => /^[A-Z]{2}$/.test(code))
   .map(([code, name]) => ({ code, name, flag: getFlagEmoji(code) }))
@@ -31,10 +31,10 @@ interface Props {
 
 export default function HomeCountrySheet({ visible, onSelect, onDismiss, showSkip, source = "onboarding" }: Props) {
   const { t } = useTranslation();
+  const { colours } = useTheme();
   const [selected, setSelected] = useState<CountryItem | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Reset state when sheet opens
   useEffect(() => {
     if (visible) {
       track("home_country_prompt_shown");
@@ -55,18 +55,20 @@ export default function HomeCountrySheet({ visible, onSelect, onDismiss, showSki
 
   return (
     <BottomSheet visible={visible} onClose={handleDismiss}>
-      {/* Header — always visible */}
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>{t('homeCountry.eyebrow')}</Text>
-        <Text style={styles.title}>{t('homeCountry.title')}</Text>
+        <Text style={[styles.eyebrow, { color: colours.textFaint }]}>{t('homeCountry.eyebrow')}</Text>
+        <Text style={[styles.title, { color: colours.text }]}>{t('homeCountry.title')}</Text>
         {!dropdownOpen && (
-          <Text style={styles.subtitle}>{t('homeCountry.subtitle')}</Text>
+          <Text style={[styles.subtitle, { color: colours.textMuted }]}>{t('homeCountry.subtitle')}</Text>
         )}
       </View>
 
-      {/* Dropdown trigger */}
       <TouchableOpacity
-        style={[styles.selector, dropdownOpen && styles.selectorOpen]}
+        style={[
+          styles.selector,
+          { backgroundColor: colours.surfaceSolid, borderColor: colours.border },
+          dropdownOpen && styles.selectorOpen,
+        ]}
         onPress={() => setDropdownOpen((o) => !o)}
         activeOpacity={0.75}
       >
@@ -74,18 +76,17 @@ export default function HomeCountrySheet({ visible, onSelect, onDismiss, showSki
           {selected ? (
             <>
               <Text style={styles.selectorFlag}>{selected.flag}</Text>
-              <Text style={styles.selectorValue}>{selected.name}</Text>
+              <Text style={[styles.selectorValue, { color: colours.text }]}>{selected.name}</Text>
             </>
           ) : (
-            <Text style={styles.selectorPlaceholder}>{t('homeCountry.placeholder')}</Text>
+            <Text style={[styles.selectorPlaceholder, { color: colours.textMuted }]}>{t('homeCountry.placeholder')}</Text>
           )}
         </View>
-        <Text style={styles.chevron}>{dropdownOpen ? "▲" : "▼"}</Text>
+        <Text style={[styles.chevron, { color: colours.textMuted }]}>{dropdownOpen ? "▲" : "▼"}</Text>
       </TouchableOpacity>
 
-      {/* Expanded country list — lives inside the BottomSheet ScrollView */}
       {dropdownOpen && (
-        <View style={styles.listContainer}>
+        <View style={[styles.listContainer, { backgroundColor: colours.surfaceSolid, borderColor: colours.border }]}>
           {COUNTRY_LIST.map((item) => (
             <TouchableOpacity
               key={item.code}
@@ -97,26 +98,30 @@ export default function HomeCountrySheet({ visible, onSelect, onDismiss, showSki
               activeOpacity={0.7}
             >
               <Text style={styles.rowFlag}>{item.flag}</Text>
-              <Text style={styles.rowName}>{item.name}</Text>
+              <Text style={[styles.rowName, { color: colours.text }]}>{item.name}</Text>
             </TouchableOpacity>
           ))}
         </View>
       )}
 
-      {/* Actions — shown only when the list is collapsed */}
       {!dropdownOpen && (
         <View style={styles.actions}>
           <TouchableOpacity
-            style={[styles.saveButton, !selected && styles.saveButtonDisabled]}
+            style={[
+              styles.saveButton,
+              { backgroundColor: selected ? colours.text : colours.overlay },
+            ]}
             onPress={selected ? () => handleSelect(selected.code) : undefined}
             activeOpacity={selected ? 0.85 : 1}
           >
-            <Text style={[styles.saveLabel, !selected && styles.saveLabelDisabled]}>{t('homeCountry.save')}</Text>
+            <Text style={[styles.saveLabel, { color: selected ? colours.background : colours.textMuted }]}>
+              {t('homeCountry.save')}
+            </Text>
           </TouchableOpacity>
 
           {showSkip && (
             <TouchableOpacity style={styles.skipButton} onPress={handleDismiss} activeOpacity={0.7}>
-              <Text style={styles.skipLabel}>{t('homeCountry.skip')}</Text>
+              <Text style={[styles.skipLabel, { color: colours.textFaint }]}>{t('homeCountry.skip')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -135,7 +140,6 @@ const styles = StyleSheet.create({
     fontFamily: "ui-monospace",
     fontSize: 10.5,
     letterSpacing: 2,
-    color: "rgba(14,14,12,0.4)",
     textTransform: "uppercase",
     marginBottom: 8,
   },
@@ -143,12 +147,10 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     letterSpacing: -0.5,
-    color: "#0E0E0C",
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 14,
-    color: "rgba(14,14,12,0.5)",
     lineHeight: 20,
   },
   selector: {
@@ -159,9 +161,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: "#fff",
     borderWidth: 1.5,
-    borderColor: "rgba(14,14,12,0.1)",
   },
   selectorOpen: {
     borderBottomLeftRadius: 0,
@@ -180,27 +180,22 @@ const styles = StyleSheet.create({
   selectorValue: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#0E0E0C",
     letterSpacing: -0.2,
   },
   selectorPlaceholder: {
     fontSize: 16,
-    color: "rgba(14,14,12,0.35)",
     letterSpacing: -0.2,
   },
   chevron: {
     fontSize: 10,
-    color: "rgba(14,14,12,0.35)",
     marginLeft: 8,
   },
   listContainer: {
     marginHorizontal: 22,
     borderWidth: 1.5,
     borderTopWidth: 0,
-    borderColor: "rgba(14,14,12,0.1)",
     borderBottomLeftRadius: 14,
     borderBottomRightRadius: 14,
-    backgroundColor: "#fff",
     overflow: "hidden",
     marginBottom: 8,
   },
@@ -217,7 +212,6 @@ const styles = StyleSheet.create({
   rowName: {
     fontSize: 15,
     fontWeight: "500",
-    color: "#0E0E0C",
     letterSpacing: -0.2,
   },
   actions: {
@@ -226,22 +220,14 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   saveButton: {
-    backgroundColor: "#0E0E0C",
     borderRadius: 28,
     paddingVertical: 15,
     alignItems: "center",
   },
-  saveButtonDisabled: {
-    backgroundColor: "rgba(14,14,12,0.08)",
-  },
   saveLabel: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FAFAF7",
     letterSpacing: -0.2,
-  },
-  saveLabelDisabled: {
-    color: "rgba(14,14,12,0.3)",
   },
   skipButton: {
     alignItems: "center",
@@ -249,7 +235,6 @@ const styles = StyleSheet.create({
   },
   skipLabel: {
     fontSize: 15,
-    color: "rgba(14,14,12,0.4)",
     fontWeight: "500",
   },
 });

@@ -95,7 +95,8 @@
     "appearance": {
       "header": "المظهر",
       "accentColour": "لون التمييز",
-      "language": "اللغة"
+      "language": "اللغة",
+      "theme": "المظهر"
     },
     "location": {
       "header": "الموقع",

@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { VisitedCell } from '@/lib/db/queries';
 import { COUNTRY_NAMES } from '@/constants/countryNames';
 import { landCellCountryMap } from '@/lib/h3/landCells';
+import { useTheme } from '@/lib/theme/ThemeContext';
 import { CountryStat } from './CountryList';
 
 interface Props {
@@ -17,20 +18,20 @@ interface Card {
   detail: string;
 }
 
-function InsightCard({ card, accent }: { card: Card; accent: string }) {
+function InsightCard({ card, accent, colours }: { card: Card; accent: string; colours: any }) {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colours.surfaceSolid, borderColor: colours.border, shadowColor: colours.shadow }]}>
       <Text style={[styles.eyebrow, { color: accent }]}>{card.eyebrow}</Text>
-      <Text style={styles.headline}>{card.headline}</Text>
-      <Text style={styles.detail}>{card.detail}</Text>
+      <Text style={[styles.headline, { color: colours.text }]}>{card.headline}</Text>
+      <Text style={[styles.detail, { color: colours.textMuted }]}>{card.detail}</Text>
     </View>
   );
 }
 
 export default function InsightCards({ cells, countryStats, accent }: Props) {
+  const { colours } = useTheme();
   const cards: Card[] = [];
 
-  // "Your patch" — most photographed cell
   const mostPhotographed = [...cells].sort((a, b) => (b.photo_count ?? 0) - (a.photo_count ?? 0))[0];
   if (mostPhotographed) {
     const code = landCellCountryMap.get(mostPhotographed.h3index);
@@ -43,7 +44,6 @@ export default function InsightCards({ cells, countryStats, accent }: Props) {
     });
   }
 
-  // "First hex ever" — earliest first_photo_date
   const firstCell = [...cells]
     .filter(c => c.first_photo_date != null)
     .sort((a, b) => (a.first_photo_date ?? 0) - (b.first_photo_date ?? 0))[0];
@@ -61,7 +61,6 @@ export default function InsightCards({ cells, countryStats, accent }: Props) {
     });
   }
 
-  // "Best explored country" — highest % coverage
   const best = [...countryStats]
     .filter(s => s.total > 0)
     .sort((a, b) => b.visited / b.total - a.visited / a.total)[0];
@@ -78,10 +77,10 @@ export default function InsightCards({ cells, countryStats, accent }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionLabel}>PERSONAL INSIGHTS</Text>
+      <Text style={[styles.sectionLabel, { color: colours.textMuted }]}>PERSONAL INSIGHTS</Text>
       <View style={styles.grid}>
         {cards.map((c, i) => (
-          <InsightCard key={i} card={c} accent={accent} />
+          <InsightCard key={i} card={c} accent={accent} colours={colours} />
         ))}
       </View>
     </View>
@@ -98,7 +97,6 @@ const styles = StyleSheet.create({
     fontFamily: 'ui-monospace',
     fontSize: 10.5,
     letterSpacing: 2,
-    color: 'rgba(14,14,12,0.5)',
     textTransform: 'uppercase',
     marginBottom: 12,
   },
@@ -106,12 +104,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   card: {
-    backgroundColor: '#fff',
     borderRadius: 20,
     padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(14,14,12,0.06)',
-    shadowColor: '#0E0E0C',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
@@ -127,11 +122,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     letterSpacing: -0.3,
-    color: '#0E0E0C',
   },
   detail: {
     fontSize: 13,
-    color: 'rgba(14,14,12,0.55)',
     marginTop: 3,
   },
 });

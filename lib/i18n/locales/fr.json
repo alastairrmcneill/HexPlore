@@ -95,7 +95,8 @@
     "appearance": {
       "header": "APPARENCE",
       "accentColour": "Couleur d'accentuation",
-      "language": "Langue"
+      "language": "Langue",
+      "theme": "Apparence"
     },
     "location": {
       "header": "LOCALISATION",

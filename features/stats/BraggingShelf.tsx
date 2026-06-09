@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '@/lib/theme/ThemeContext';
 
 interface Props {
   hexCount: number;
@@ -9,24 +10,25 @@ interface Props {
   accent: string;
 }
 
-function StatCard({ label, value, accent }: { label: string; value: string; accent: string }) {
+function StatCard({ label, value, accent, colours }: { label: string; value: string; accent: string; colours: any }) {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colours.surfaceSolid, borderColor: colours.border, shadowColor: colours.shadow }]}>
       <Text style={[styles.value, { color: accent }]}>{value}</Text>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { color: colours.textMuted }]}>{label}</Text>
     </View>
   );
 }
 
 export default function BraggingShelf({ hexCount, countryCount, continentCount, accent }: Props) {
   const { t } = useTranslation();
+  const { colours } = useTheme();
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionLabel}>{t('stats.bragging.header')}</Text>
+      <Text style={[styles.sectionLabel, { color: colours.textMuted }]}>{t('stats.bragging.header')}</Text>
       <View style={styles.row}>
-        <StatCard label={t('stats.bragging.totalHexes')} value={hexCount.toLocaleString()} accent={accent} />
-        <StatCard label={t('stats.bragging.countries')} value={String(countryCount)} accent={accent} />
-        <StatCard label={t('stats.bragging.continents')} value={String(continentCount)} accent={accent} />
+        <StatCard label={t('stats.bragging.totalHexes')} value={hexCount.toLocaleString()} accent={accent} colours={colours} />
+        <StatCard label={t('stats.bragging.countries')} value={String(countryCount)} accent={accent} colours={colours} />
+        <StatCard label={t('stats.bragging.continents')} value={String(continentCount)} accent={accent} colours={colours} />
       </View>
     </View>
   );
@@ -41,7 +43,6 @@ const styles = StyleSheet.create({
     fontFamily: 'ui-monospace',
     fontSize: 10.5,
     letterSpacing: 2,
-    color: 'rgba(14,14,12,0.5)',
     textTransform: 'uppercase',
     marginBottom: 12,
   },
@@ -51,13 +52,10 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    backgroundColor: '#fff',
     borderRadius: 20,
     paddingVertical: 18,
     paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: 'rgba(14,14,12,0.06)',
-    shadowColor: '#0E0E0C',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
@@ -70,7 +68,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: 'rgba(14,14,12,0.55)',
     marginTop: 4,
   },
 });

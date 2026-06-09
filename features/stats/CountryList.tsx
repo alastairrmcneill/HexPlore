@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '@/lib/theme/ThemeContext';
 
 export interface CountryStat {
   code: string;
@@ -21,24 +22,23 @@ function codeToFlag(code: string): string {
     .join('');
 }
 
-function CountryRow({ stat, accent, isLast }: { stat: CountryStat; accent: string; isLast: boolean }) {
+function CountryRow({ stat, accent, isLast, colours }: { stat: CountryStat; accent: string; isLast: boolean; colours: any }) {
   const pct = stat.total > 0 ? (stat.visited / stat.total) * 100 : 0;
-  const barWidth = pct;
 
   return (
-    <View style={[styles.row, !isLast && styles.rowBorder]}>
+    <View style={[styles.row, !isLast && { borderBottomWidth: 1, borderBottomColor: colours.border }]}>
       <View style={styles.left}>
         <View style={styles.nameRow}>
           <Text style={styles.flag}>{codeToFlag(stat.code)}</Text>
-          <Text style={styles.name} numberOfLines={1}>{stat.name}</Text>
+          <Text style={[styles.name, { color: colours.text }]} numberOfLines={1}>{stat.name}</Text>
         </View>
-        <View style={styles.barTrack}>
-          <View style={[styles.bar, { width: `${barWidth}%` as any, backgroundColor: accent }]} />
+        <View style={[styles.barTrack, { backgroundColor: colours.overlay }]}>
+          <View style={[styles.bar, { width: `${pct}%` as any, backgroundColor: accent }]} />
         </View>
       </View>
       <View style={styles.right}>
-        <Text style={styles.hexCount}>{stat.visited}</Text>
-        <Text style={styles.pctLabel}>{pct.toFixed(1)}%</Text>
+        <Text style={[styles.hexCount, { color: colours.text }]}>{stat.visited}</Text>
+        <Text style={[styles.pctLabel, { color: colours.textMuted }]}>{pct.toFixed(1)}%</Text>
       </View>
     </View>
   );
@@ -46,9 +46,9 @@ function CountryRow({ stat, accent, isLast }: { stat: CountryStat; accent: strin
 
 export default function CountryList({ stats, accent }: Props) {
   const { t } = useTranslation();
+  const { colours } = useTheme();
   if (stats.length === 0) return null;
 
-  // Sort descending by % coverage (highest first)
   const sorted = [...stats].sort((a, b) => {
     const pctA = a.total > 0 ? a.visited / a.total : 0;
     const pctB = b.total > 0 ? b.visited / b.total : 0;
@@ -58,8 +58,8 @@ export default function CountryList({ stats, accent }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.sectionLabel}>{t('stats.countries.label', { count: stats.length })}</Text>
-        <Text style={styles.headerRight}>{t('stats.countries.right')}</Text>
+        <Text style={[styles.sectionLabel, { color: colours.textMuted }]}>{t('stats.countries.label', { count: stats.length })}</Text>
+        <Text style={[styles.headerRight, { color: colours.textFaint }]}>{t('stats.countries.right')}</Text>
       </View>
       {sorted.map((s, i) => (
         <CountryRow
@@ -67,6 +67,7 @@ export default function CountryList({ stats, accent }: Props) {
           stat={s}
           accent={accent}
           isLast={i === sorted.length - 1}
+          colours={colours}
         />
       ))}
     </View>
@@ -88,14 +89,12 @@ const styles = StyleSheet.create({
     fontFamily: 'ui-monospace',
     fontSize: 10.5,
     letterSpacing: 2,
-    color: 'rgba(14,14,12,0.5)',
     textTransform: 'uppercase',
   },
   headerRight: {
     fontFamily: 'ui-monospace',
     fontSize: 10.5,
     letterSpacing: 1.4,
-    color: 'rgba(14,14,12,0.4)',
     textTransform: 'uppercase',
   },
   row: {
@@ -103,10 +102,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 13,
     gap: 14,
-  },
-  rowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(14,14,12,0.07)',
   },
   left: {
     flex: 1,
@@ -125,12 +120,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     letterSpacing: -0.2,
-    color: '#0E0E0C',
     flexShrink: 1,
   },
   barTrack: {
     height: 3,
-    backgroundColor: 'rgba(14,14,12,0.06)',
     borderRadius: 2,
     overflow: 'hidden',
   },
@@ -147,12 +140,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     letterSpacing: -0.2,
-    color: '#0E0E0C',
   },
   pctLabel: {
     fontFamily: 'ui-monospace',
     fontSize: 11,
-    color: 'rgba(14,14,12,0.5)',
     marginTop: 1,
   },
 });

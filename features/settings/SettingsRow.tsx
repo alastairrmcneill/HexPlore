@@ -1,3 +1,4 @@
+import { useTheme } from '@/lib/theme/ThemeContext';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -10,12 +11,14 @@ interface Props {
 }
 
 export default function SettingsRow({ label, value, onPress, isLast, destructive }: Props) {
+  const { colours } = useTheme();
+
   const content = (
-    <View style={[styles.row, !isLast && styles.border]}>
-      <Text style={[styles.label, destructive && styles.destructive]}>{label}</Text>
+    <View style={[styles.row, !isLast && { borderBottomWidth: 1, borderBottomColor: colours.border }]}>
+      <Text style={[styles.label, { color: destructive ? '#FF3B30' : colours.text }]}>{label}</Text>
       <View style={styles.right}>
-        {value ? <Text style={styles.value}>{value}</Text> : null}
-        {onPress ? <Text style={styles.chevron}>›</Text> : null}
+        {value ? <Text style={[styles.value, { color: colours.textFaint }]}>{value}</Text> : null}
+        {onPress ? <Text style={[styles.chevron, { color: colours.textMuted }]}>›</Text> : null}
       </View>
     </View>
   );
@@ -35,18 +38,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 16,
   },
-  border: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(14,14,12,0.07)',
-  },
   label: {
     fontSize: 16,
     fontWeight: '500',
     letterSpacing: -0.2,
-    color: '#0E0E0C',
-  },
-  destructive: {
-    color: '#FF3B30',
   },
   right: {
     flexDirection: 'row',
@@ -55,10 +50,8 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 15,
-    color: 'rgba(14,14,12,0.4)',
   },
   chevron: {
     fontSize: 18,
-    color: 'rgba(14,14,12,0.35)',
   },
 });

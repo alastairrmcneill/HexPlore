@@ -1,3 +1,4 @@
+import { useTheme } from '@/lib/theme/ThemeContext';
 import React, { useMemo } from 'react';
 import { GeoJSONSource, Layer } from '@maplibre/maplibre-react-native';
 
@@ -30,8 +31,10 @@ function buildGraticule(step: number | null): GeoJSON.FeatureCollection {
 }
 
 export default function GraticuleLayer({ zoom }: Props) {
+  const { isDark } = useTheme();
   const step: number | null = zoom < 3 ? 5 : 2;
   const data = useMemo(() => buildGraticule(step), [step]);
+  const lineColor = isDark ? 'rgba(250,250,247,0.06)' : 'rgba(14,14,12,0.05)';
 
   return (
     <GeoJSONSource id="graticule-source" data={data}>
@@ -39,7 +42,7 @@ export default function GraticuleLayer({ zoom }: Props) {
         id="graticule-layer"
         type="line"
         paint={{
-          'line-color': 'rgba(14,14,12,0.05)',
+          'line-color': lineColor,
           'line-width': 0.5,
         }}
       />

@@ -1,5 +1,6 @@
 import React from 'react';
 import Svg, { Polygon } from 'react-native-svg';
+import { useTheme } from '@/lib/theme/ThemeContext';
 
 interface Props {
   accent: string;
@@ -39,6 +40,7 @@ function hexPoints(cx: number, cy: number, r: number): string {
 }
 
 export default function ScanRipple({ accent, progress }: Props) {
+  const { colours } = useTheme();
   return (
     <Svg width={190} height={190} viewBox="-95 -95 190 190">
       {CELLS.map((c, i) => {
@@ -48,7 +50,7 @@ export default function ScanRipple({ accent, progress }: Props) {
             key={i}
             points={hexPoints(c.x, c.y, 7.6)}
             fill={filled ? accent : 'transparent'}
-            stroke={filled ? 'none' : 'rgba(14,14,12,0.12)'}
+            stroke={filled ? 'none' : colours.hexOutline}
             strokeWidth={1}
           />
         );

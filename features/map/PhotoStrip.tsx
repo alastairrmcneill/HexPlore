@@ -1,4 +1,5 @@
 import { getPhotoIdsByCell } from "@/lib/db/queries";
+import { useTheme } from "@/lib/theme/ThemeContext";
 import * as MediaLibrary from "expo-media-library";
 import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
@@ -10,10 +11,10 @@ interface Props {
 
 const MAX_PHOTOS = 5;
 
-// Survives re-renders and re-opens of the same cell — no re-fetching needed
 const _uriCache = new Map<string, string[]>();
 
 export default function PhotoStrip({ h3index }: Props) {
+  const { colours } = useTheme();
   const [uris, setUris] = useState<string[]>(() => _uriCache.get(h3index) ?? []);
   const [loading, setLoading] = useState(!_uriCache.has(h3index));
 
@@ -32,7 +33,6 @@ export default function PhotoStrip({ h3index }: Props) {
       const ids = await getPhotoIdsByCell(h3index);
       const batch = ids.slice(0, MAX_PHOTOS);
 
-      // Fetch all asset infos in parallel instead of sequentially
       const results = await Promise.allSettled(
         batch.map((id) => MediaLibrary.getAssetInfoAsync(id)),
       );
@@ -57,7 +57,7 @@ export default function PhotoStrip({ h3index }: Props) {
 
   return (
     <View>
-      <Text style={styles.label}>RECENT PHOTOS</Text>
+      <Text style={[styles.label, { color: colours.textMuted }]}>RECENT PHOTOS</Text>
       <FlatList
         horizontal
         data={uris}
@@ -67,13 +67,13 @@ export default function PhotoStrip({ h3index }: Props) {
         renderItem={({ item }) => (
           <Image
             source={{ uri: item }}
-            style={styles.thumb}
+            style={[styles.thumb, { backgroundColor: colours.overlay }]}
             contentFit="cover"
             cachePolicy="memory-disk"
             transition={150}
           />
         )}
-        ListFooterComponent={loading ? <View style={styles.placeholder} /> : null}
+        ListFooterComponent={loading ? <View style={[styles.placeholder, { backgroundColor: colours.overlay }]} /> : null}
       />
     </View>
   );
@@ -84,7 +84,6 @@ const styles = StyleSheet.create({
     fontFamily: "ui-monospace",
     fontSize: 10.5,
     letterSpacing: 2,
-    color: "rgba(14,14,12,0.5)",
     marginBottom: 8,
   },
   list: {
@@ -95,12 +94,10 @@ const styles = StyleSheet.create({
     width: 92,
     height: 110,
     borderRadius: 12,
-    backgroundColor: "rgba(14,14,12,0.06)",
   },
   placeholder: {
     width: 92,
     height: 110,
     borderRadius: 12,
-    backgroundColor: "rgba(14,14,12,0.06)",
   },
 });

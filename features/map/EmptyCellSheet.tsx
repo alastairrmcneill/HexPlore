@@ -5,6 +5,7 @@ import BottomSheet from '@/components/BottomSheet';
 import { cellToCenter } from '@/lib/h3/hexUtils';
 import { landCellCountryMap } from '@/lib/h3/landCells';
 import { COUNTRY_NAMES } from '@/constants/countryNames';
+import { useTheme } from '@/lib/theme/ThemeContext';
 import HexNeighborThumbnail from './HexNeighborThumbnail';
 
 interface Props {
@@ -28,6 +29,7 @@ export default function EmptyCellSheet({
   visible, h3index, visitedSet, accent, onClose, onMarkVisited,
 }: Props) {
   const { t } = useTranslation();
+  const { colours } = useTheme();
   const [lat, lng] = h3index ? cellToCenter(h3index) : [0, 0];
   const countryCode = h3index ? landCellCountryMap.get(h3index) ?? '' : '';
   const countryName = countryCode ? (COUNTRY_NAMES[countryCode] ?? countryCode) : '';
@@ -47,20 +49,20 @@ export default function EmptyCellSheet({
         <View style={styles.identityText}>
           <View style={styles.countryRow}>
             {flag ? <Text style={styles.flagEmoji}>{flag}</Text> : null}
-            {countryName ? <Text style={styles.countryLabel}>{countryName}</Text> : null}
+            {countryName ? <Text style={[styles.countryLabel, { color: colours.textMuted }]}>{countryName}</Text> : null}
           </View>
-          <Text style={styles.coords}>{lat.toFixed(4)}°, {lng.toFixed(4)}°</Text>
-          <Text style={styles.unvisited}>{t('map.emptyCell.notVisited')}</Text>
+          <Text style={[styles.coords, { color: colours.text }]}>{lat.toFixed(4)}°, {lng.toFixed(4)}°</Text>
+          <Text style={[styles.unvisited, { color: colours.textMuted }]}>{t('map.emptyCell.notVisited')}</Text>
         </View>
       </View>
 
       <TouchableOpacity
-        style={styles.markBtn}
+        style={[styles.markBtn, { backgroundColor: colours.text }]}
         activeOpacity={0.8}
         onPress={() => onMarkVisited(h3index)}
       >
-        <Text style={styles.markBtnText}>{t('map.emptyCell.markVisited')}</Text>
-        <Text style={styles.markBtnArrow}>→</Text>
+        <Text style={[styles.markBtnText, { color: colours.background }]}>{t('map.emptyCell.markVisited')}</Text>
+        <Text style={[styles.markBtnArrow, { color: colours.background }]}>→</Text>
       </TouchableOpacity>
     </BottomSheet>
   );
@@ -90,22 +92,18 @@ const styles = StyleSheet.create({
     fontFamily: 'ui-monospace',
     fontSize: 10.5,
     letterSpacing: 2,
-    color: 'rgba(14,14,12,0.5)',
     textTransform: 'uppercase',
   },
   coords: {
     fontFamily: 'ui-monospace',
     fontSize: 15,
     fontWeight: '500',
-    color: '#0E0E0C',
     letterSpacing: -0.2,
   },
   unvisited: {
     fontSize: 13,
-    color: 'rgba(14,14,12,0.45)',
   },
   markBtn: {
-    backgroundColor: '#0E0E0C',
     borderRadius: 18,
     paddingVertical: 17,
     paddingHorizontal: 18,
@@ -116,10 +114,8 @@ const styles = StyleSheet.create({
   markBtnText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#FAFAF7',
   },
   markBtnArrow: {
     fontSize: 18,
-    color: '#FAFAF7',
   },
 });

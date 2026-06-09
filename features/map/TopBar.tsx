@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '@/lib/theme/ThemeContext';
 
 interface Props {
   zoom: number;
@@ -23,6 +24,7 @@ interface Props {
 export default function TopBar({ zoom, onShare, onAdd, mapMode, onToggleMapMode }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { colours } = useTheme();
   const [menuVisible, setMenuVisible] = useState(false);
   const anim = useRef(new Animated.Value(0)).current;
 
@@ -53,41 +55,56 @@ export default function TopBar({ zoom, onShare, onAdd, mapMode, onToggleMapMode 
     });
   }
 
-  // Menu sits just below the button row; button row is at insets.top + 8, buttons are 38pt tall
   const menuTop = insets.top + 8 + 38 + 6;
 
   return (
     <>
-      {/* gradient fade behind the bar */}
       <View style={styles.gradient} pointerEvents="none" />
 
-      {/* app bar row */}
       <View style={[styles.bar, { top: insets.top + 8 }]} pointerEvents="box-none">
         <View pointerEvents="none">
-          <Text style={styles.eyebrow}>{t('map.topbar.worldCoverage')}</Text>
-          <Text style={styles.title}>HexPlore</Text>
+          <Text style={[styles.eyebrow, { color: colours.textMuted }]}>{t('map.topbar.worldCoverage')}</Text>
+          <Text style={[styles.title, { color: colours.text }]}>HexPlore</Text>
         </View>
         <View style={styles.buttons}>
-          <TouchableOpacity style={styles.glassBtn} onPress={onShare} activeOpacity={0.75}>
-            <SymbolView name="square.and.arrow.up" size={18} tintColor="#0E0E0C" />
+          <TouchableOpacity
+            style={[styles.glassBtn, { backgroundColor: colours.surface, borderColor: colours.border, shadowColor: colours.shadow }]}
+            onPress={onShare}
+            activeOpacity={0.75}
+          >
+            <SymbolView name="square.and.arrow.up" size={18} tintColor={colours.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.glassBtn, mapMode === "street" && styles.glassBtnActive]} onPress={onToggleMapMode} activeOpacity={0.75}>
-            <SymbolView name={mapMode === "street" ? "map.fill" : "map"} size={18} tintColor={mapMode === "street" ? "#FAFAF7" : "#0E0E0C"} />
+          <TouchableOpacity
+            style={[
+              styles.glassBtn,
+              { backgroundColor: colours.surface, borderColor: colours.border, shadowColor: colours.shadow },
+              mapMode === "street" && { backgroundColor: colours.text, borderColor: 'transparent' },
+            ]}
+            onPress={onToggleMapMode}
+            activeOpacity={0.75}
+          >
+            <SymbolView
+              name={mapMode === "street" ? "map.fill" : "map"}
+              size={18}
+              tintColor={mapMode === "street" ? colours.background : colours.text}
+            />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.glassBtn} onPress={openMenu} activeOpacity={0.75}>
-            <Text style={styles.glassBtnLabelLarge}>+</Text>
+          <TouchableOpacity
+            style={[styles.glassBtn, { backgroundColor: colours.surface, borderColor: colours.border, shadowColor: colours.shadow }]}
+            onPress={openMenu}
+            activeOpacity={0.75}
+          >
+            <Text style={[styles.glassBtnLabelLarge, { color: colours.text }]}>+</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* zoom indicator */}
       <View style={[styles.zoomIndicator, { top: insets.top + 52 }]} pointerEvents="none">
-        <Text style={styles.zoomText}>
+        <Text style={[styles.zoomText, { color: colours.textMuted }]}>
           {t('map.topbar.zoom', { zoom: zoom.toFixed(2), level: zoomLevel() })}
         </Text>
       </View>
 
-      {/* context menu */}
       <Modal visible={menuVisible} transparent animationType="none" onRequestClose={() => closeMenu()}>
         <TouchableWithoutFeedback onPress={() => closeMenu()}>
           <View style={StyleSheet.absoluteFill} />
@@ -96,29 +113,13 @@ export default function TopBar({ zoom, onShare, onAdd, mapMode, onToggleMapMode 
         <Animated.View
           style={[
             styles.menu,
-            { top: menuTop, right: 16 },
+            { top: menuTop, right: 16, backgroundColor: colours.surfaceSolid },
             {
               opacity: anim,
               transform: [
-                {
-                  scale: anim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.82, 1],
-                  }),
-                },
-                {
-                  // nudge so it scales from the top-right corner
-                  translateX: anim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [9, 0],
-                  }),
-                },
-                {
-                  translateY: anim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-9, 0],
-                  }),
-                },
+                { scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.82, 1] }) },
+                { translateX: anim.interpolate({ inputRange: [0, 1], outputRange: [9, 0] }) },
+                { translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [-9, 0] }) },
               ],
             },
           ]}
@@ -129,8 +130,8 @@ export default function TopBar({ zoom, onShare, onAdd, mapMode, onToggleMapMode 
             activeOpacity={0.5}
             onPress={() => closeMenu(onAdd)}
           >
-            <Text style={styles.menuItemLabel}>{t('map.topbar.scanAgain')}</Text>
-            <SymbolView name="camera" size={16} tintColor="rgba(14,14,12,0.45)" />
+            <Text style={[styles.menuItemLabel, { color: colours.text }]}>{t('map.topbar.scanAgain')}</Text>
+            <SymbolView name="camera" size={16} tintColor={colours.textMuted} />
           </TouchableOpacity>
         </Animated.View>
       </Modal>
@@ -145,7 +146,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 120,
-    backgroundColor: 'rgba(250,250,247,0.0)',
   },
   bar: {
     position: 'absolute',
@@ -159,13 +159,11 @@ const styles = StyleSheet.create({
     fontFamily: 'ui-monospace',
     fontSize: 10.5,
     letterSpacing: 1.7,
-    color: 'rgba(14,14,12,0.45)',
     textTransform: 'uppercase',
   },
   title: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#0E0E0C',
     letterSpacing: -0.44,
     marginTop: 2,
   },
@@ -177,27 +175,18 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(255,255,255,0.72)',
     borderWidth: 1,
-    borderColor: 'rgba(14,14,12,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#0E0E0C',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
   },
-  glassBtnActive: {
-    backgroundColor: '#0E0E0C',
-    borderColor: 'transparent',
-  },
   glassBtnLabelLarge: {
     fontSize: 24,
     fontWeight: '300',
-    color: '#0E0E0C',
     lineHeight: 28,
   },
-
   zoomIndicator: {
     position: 'absolute',
     left: 20,
@@ -206,14 +195,10 @@ const styles = StyleSheet.create({
     fontFamily: 'ui-monospace',
     fontSize: 10.5,
     letterSpacing: 0.8,
-    color: 'rgba(14,14,12,0.5)',
   },
-
-  // context menu
   menu: {
     position: 'absolute',
     width: 210,
-    backgroundColor: 'rgba(248,248,248,0.98)',
     borderRadius: 13,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
@@ -230,7 +215,6 @@ const styles = StyleSheet.create({
   },
   menuItemLabel: {
     fontSize: 16,
-    color: '#0E0E0C',
     letterSpacing: -0.2,
   },
 });

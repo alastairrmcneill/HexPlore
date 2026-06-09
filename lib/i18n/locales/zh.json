@@ -95,7 +95,8 @@
     "appearance": {
       "header": "外观",
       "accentColour": "强调色",
-      "language": "语言"
+      "language": "语言",
+      "theme": "外观"
     },
     "location": {
       "header": "位置",

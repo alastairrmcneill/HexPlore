@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import { LAND_CELL_COUNT } from '@/constants/h3';
+import { useTheme } from '@/lib/theme/ThemeContext';
 
 const KM2_PER_CELL = 1770;
 
@@ -13,15 +14,16 @@ interface Props {
 
 export default function HeroNumber({ worldPct, hexCount, accent }: Props) {
   const { t } = useTranslation();
+  const { colours } = useTheme();
   const km2 = (hexCount * KM2_PER_CELL).toLocaleString();
   return (
     <View style={styles.container}>
-      <Text style={styles.eyebrow}>{t('stats.worldCovered')}</Text>
+      <Text style={[styles.eyebrow, { color: colours.textMuted }]}>{t('stats.worldCovered')}</Text>
       <View style={styles.numberRow}>
         <Text style={[styles.number, { color: accent }]}>{worldPct.toFixed(2)}</Text>
         <Text style={[styles.percent, { color: accent }]}>%</Text>
       </View>
-      <Text style={styles.subtitle}>
+      <Text style={[styles.subtitle, { color: colours.textMuted }]}>
         {t('stats.hero.subtitle', { hexes: hexCount.toLocaleString(), total: LAND_CELL_COUNT.toLocaleString(), km2 })}
       </Text>
     </View>
@@ -38,7 +40,6 @@ const styles = StyleSheet.create({
     fontFamily: 'ui-monospace',
     fontSize: 11,
     letterSpacing: 2.2,
-    color: 'rgba(14,14,12,0.5)',
     textTransform: 'uppercase',
   },
   numberRow: {
@@ -62,12 +63,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: 'rgba(14,14,12,0.55)',
     marginTop: 10,
     lineHeight: 20,
-  },
-  subtitleMono: {
-    fontFamily: 'ui-monospace',
-    color: '#0E0E0C',
   },
 });

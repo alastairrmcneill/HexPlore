@@ -95,7 +95,8 @@
     "appearance": {
       "header": "ERSCHEINUNGSBILD",
       "accentColour": "Akzentfarbe",
-      "language": "Sprache"
+      "language": "Sprache",
+      "theme": "Erscheinungsbild"
     },
     "location": {
       "header": "STANDORT",

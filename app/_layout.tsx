@@ -3,13 +3,18 @@ import { Stack, usePathname, useGlobalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PostHogProvider } from 'posthog-react-native';
-import { ThemeProvider } from '@/lib/theme/ThemeContext';
+import { ThemeProvider, useTheme } from '@/lib/theme/ThemeContext';
 import { LocaleProvider } from '@/lib/i18n/LocaleContext';
 import '@/lib/i18n';
 import { runMigrations } from '@/lib/db/migrations';
 import { initAnalytics, posthog } from '@/lib/analytics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as StoreReview from 'expo-store-review';
+
+function ThemedStatusBar() {
+  const { isDark } = useTheme();
+  return <StatusBar style={isDark ? 'light' : 'dark'} />;
+}
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -64,7 +69,7 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
             </Stack>
-            <StatusBar style="dark" />
+            <ThemedStatusBar />
           </LocaleProvider>
         </ThemeProvider>
       </PostHogProvider>

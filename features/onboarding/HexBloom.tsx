@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Svg, { Polygon } from 'react-native-svg';
+import { useTheme } from '@/lib/theme/ThemeContext';
 
 interface Props {
   accent: string;
@@ -38,6 +39,7 @@ function hexPoints(cx: number, cy: number, r: number): string {
 }
 
 export default function HexBloom({ accent }: Props) {
+  const { colours } = useTheme();
   const [t, setT] = useState(0);
   const rafRef = useRef<number>(0);
   const startRef = useRef<number>(0);
@@ -61,7 +63,7 @@ export default function HexBloom({ accent }: Props) {
         const isCenter = c.dist === 0;
         const fill = isCenter || filled ? accent : 'transparent';
         const opacity = isCenter ? 1 : filled ? 0.35 + wave * 0.65 : 1;
-        const stroke = filled || isCenter ? 'none' : 'rgba(14,14,12,0.16)';
+        const stroke = filled || isCenter ? 'none' : colours.hexOutline;
 
         return (
           <Polygon

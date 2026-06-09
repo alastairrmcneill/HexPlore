@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '@/lib/theme/ThemeContext';
 
 interface YearBar {
   year: number;
@@ -14,17 +15,18 @@ interface Props {
 
 export default function HexesPerYearChart({ years, accent }: Props) {
   const { t } = useTranslation();
+  const { colours } = useTheme();
   if (years.length === 0) return null;
   const maxCount = Math.max(...years.map(y => y.count), 1);
   const BAR_MAX_HEIGHT = 70;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{t('stats.hexesPerYear')}</Text>
+      <Text style={[styles.label, { color: colours.textMuted }]}>{t('stats.hexesPerYear')}</Text>
       <View style={styles.chart}>
         {years.map(y => (
           <View key={y.year} style={styles.barCol}>
-            <Text style={styles.countLabel}>{y.count}</Text>
+            <Text style={[styles.countLabel, { color: colours.textMuted }]}>{y.count}</Text>
             <View style={styles.barTrack}>
               <View
                 style={[
@@ -36,7 +38,7 @@ export default function HexesPerYearChart({ years, accent }: Props) {
                 ]}
               />
             </View>
-            <Text style={styles.yearLabel}>{String(y.year).slice(2)}</Text>
+            <Text style={[styles.yearLabel, { color: colours.textMuted }]}>{String(y.year).slice(2)}</Text>
           </View>
         ))}
       </View>
@@ -54,7 +56,6 @@ const styles = StyleSheet.create({
     fontFamily: 'ui-monospace',
     fontSize: 10.5,
     letterSpacing: 2,
-    color: 'rgba(14,14,12,0.5)',
     textTransform: 'uppercase',
     marginBottom: 14,
   },
@@ -72,7 +73,6 @@ const styles = StyleSheet.create({
   countLabel: {
     fontFamily: 'ui-monospace',
     fontSize: 11,
-    color: 'rgba(14,14,12,0.55)',
   },
   barTrack: {
     flex: 1,
@@ -86,6 +86,5 @@ const styles = StyleSheet.create({
   yearLabel: {
     fontFamily: 'ui-monospace',
     fontSize: 10.5,
-    color: 'rgba(14,14,12,0.55)',
   },
 });
