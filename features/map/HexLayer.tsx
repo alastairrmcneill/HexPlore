@@ -6,10 +6,11 @@ import { cellsToGeoJSON } from '@/lib/h3/geoUtils';
 interface Props {
   visitedIndices: string[];
   accent: string;
+  mapMode: 'minimal' | 'street';
   onReady?: () => void;
 }
 
-export default function HexLayer({ visitedIndices, accent, onReady }: Props) {
+export default function HexLayer({ visitedIndices, accent, mapMode, onReady }: Props) {
   const [landData, setLandData] = useState<GeoJSON.FeatureCollection | string | null>(null);
   const [visitedGeoJSON, setVisitedGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
   const onReadyRef = useRef(onReady);
@@ -47,8 +48,8 @@ export default function HexLayer({ visitedIndices, accent, onReady }: Props) {
             id="land-outline"
             type="line"
             paint={{
-              'line-color': 'rgba(14,14,12,0.12)',
-              'line-width': 0.8,
+              'line-color': mapMode === 'street' ? 'rgba(255,255,255,0.5)' : 'rgba(14,14,12,0.12)',
+              'line-width': mapMode === 'street' ? 1.8 : 0.8,
             }}
           />
         </GeoJSONSource>

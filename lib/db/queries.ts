@@ -70,6 +70,14 @@ export async function getCellCountByCountry(): Promise<{ country_code: string; c
   );
 }
 
+export async function getUngeocodedCells(): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ h3index: string }>(
+    "SELECT h3index FROM visited_cells WHERE geocoded_at IS NULL",
+  );
+  return rows.map(r => r.h3index);
+}
+
 export async function insertCellPhoto(h3index: string, assetId: string): Promise<void> {
   const db = await getDb();
   await db.runAsync("INSERT OR IGNORE INTO cell_photos (h3index, asset_id) VALUES (?, ?)", [h3index, assetId]);

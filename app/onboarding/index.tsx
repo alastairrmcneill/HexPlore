@@ -1,6 +1,7 @@
 import HexBloom from "@/features/onboarding/HexBloom";
 import ScanRipple from "@/features/onboarding/ScanRipple";
 import { track } from "@/lib/analytics";
+import { enqueueAllUngeocoded } from "@/lib/media/geocoder";
 import { LAST_SCAN_KEY, PermissionDeniedError, scanCameraRoll } from "@/lib/media/scanner";
 import { useTheme } from "@/lib/theme/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -56,6 +57,7 @@ export default function OnboardingScreen() {
       await AsyncStorage.setItem(LAST_SCAN_KEY, String(scanStartRef.current));
       track("camera_permission_granted");
       track("scan_completed", { photo_count: result.photoCount, hex_count: result.hexCount, duration_ms: duration });
+      enqueueAllUngeocoded(); // background reverse-geocode all cells for country fallback
       setHexCount(result.hexCount);
       setProgress(100);
       setPhase("done");

@@ -2,6 +2,7 @@ import ScanRipple from "@/features/onboarding/ScanRipple";
 import ShareCard from "@/features/share/ShareCard";
 import { track } from "@/lib/analytics";
 import { getAllCells, insertManualCell } from "@/lib/db/queries";
+import { enqueueAllUngeocoded } from "@/lib/media/geocoder";
 import { getCountryCentroid, getMostVisitedCountry } from "@/lib/h3/countryUtils";
 import { latLngToCell } from "@/lib/h3/hexUtils";
 import { landCellCount, landCellCountryMap, landCellIndices } from "@/lib/h3/landCells";
@@ -92,7 +93,9 @@ export default function MapScreen({ onNavigateStats }: Props) {
     const indices = cells.map((c) => c.h3index);
     setVisitedIndices(indices);
     setWorldPct((indices.length / landCellCount) * 100);
-    const countries = new Set(indices.map((idx) => landCellCountryMap.get(idx)).filter(Boolean));
+    const countries = new Set(
+      cells.map(c => landCellCountryMap.get(c.h3index) ?? c.country_code).filter(Boolean)
+    );
     setCountryCount(countries.size);
     setCellsLoaded(true);
     return indices;
@@ -102,6 +105,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
     async function init() {
       const indices = await loadCells();
       track("map_viewed");
+      enqueueAllUngeocoded(); // background-fill country_code for cells missing geocoding
 
       if (hasAppliedInitialCenter.current) return;
       hasAppliedInitialCenter.current = true;
@@ -276,7 +280,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
       >
         <Camera ref={cameraRef} initialViewState={{ center: INITIAL_CENTER, zoom: INITIAL_ZOOM }} minZoom={1} />
         {mapMode === "minimal" && <GraticuleLayer zoom={zoom} />}
-        <HexLayer visitedIndices={visitedIndices} accent={accent} onReady={() => setHexLayerReady(true)} />
+        <HexLayer visitedIndices={visitedIndices} accent={accent} mapMode={mapMode} onReady={() => setHexLayerReady(true)} />
       </Map>
 
       <TopBar

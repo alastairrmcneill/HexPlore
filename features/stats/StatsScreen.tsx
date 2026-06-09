@@ -36,7 +36,7 @@ export default function StatsScreen() {
   // Derive country stats from landCellCountryMap (reliable, no geocoding dependency)
   const countryVisits = new Map<string, number>();
   for (const cell of cells) {
-    const code = landCellCountryMap.get(cell.h3index);
+    const code = landCellCountryMap.get(cell.h3index) ?? cell.country_code;
     if (code) countryVisits.set(code, (countryVisits.get(code) ?? 0) + 1);
   }
 

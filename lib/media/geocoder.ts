@@ -1,6 +1,6 @@
 import * as Location from 'expo-location';
 import { cellToCenter } from '@/lib/h3/hexUtils';
-import { updateGeocode } from '@/lib/db/queries';
+import { getUngeocodedCells, updateGeocode } from '@/lib/db/queries';
 
 const queue: string[] = [];
 let running = false;
@@ -9,6 +9,15 @@ export function enqueueGeocode(h3index: string): void {
   if (queue.includes(h3index)) return;
   queue.push(h3index);
   if (!running) processNext();
+}
+
+// Queue all cells that haven't been reverse-geocoded yet.
+// Called after scan completes and on app open. Runs at 1s/cell (Apple rate limit).
+export async function enqueueAllUngeocoded(): Promise<void> {
+  const cells = await getUngeocodedCells();
+  for (const h3index of cells) {
+    enqueueGeocode(h3index);
+  }
 }
 
 async function processNext(): Promise<void> {
