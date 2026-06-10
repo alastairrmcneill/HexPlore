@@ -1,6 +1,6 @@
 import * as Location from 'expo-location';
 import { cellToCenter } from '@/lib/h3/hexUtils';
-import { getUngeocodedCells, updateGeocode } from '@/lib/db/queries';
+import { getCellByIndex, getUngeocodedCells, updateGeocode } from '@/lib/db/queries';
 
 const queue: string[] = [];
 let running = false;
@@ -28,7 +28,10 @@ async function processNext(): Promise<void> {
   running = true;
   const h3index = queue.shift()!;
   try {
-    const [lat, lng] = cellToCenter(h3index);
+    const cell = await getCellByIndex(h3index);
+    const [lat, lng] = cell?.rep_lat != null
+      ? [cell.rep_lat, cell.rep_lng!]
+      : cellToCenter(h3index);
     const results = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
     if (results.length > 0) {
       const r = results[0];

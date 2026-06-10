@@ -60,7 +60,8 @@
     },
     "emptyCell": {
       "notVisited": "Not yet visited",
-      "markVisited": "Mark as visited"
+      "markVisited": "Mark as visited",
+      "borderCell": "This hex crosses a border — choose a country:"
     },
     "hint": "Tap any hex on the map to mark it as visited",
     "loading": "Loading your map…"

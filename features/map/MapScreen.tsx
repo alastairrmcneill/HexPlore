@@ -96,7 +96,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
     setVisitedIndices(indices);
     setWorldPct((indices.length / landCellCount) * 100);
     const countries = new Set(
-      cells.map(c => landCellCountryMap.get(c.h3index) ?? c.country_code).filter(Boolean)
+      cells.map(c => (c.rep_lat != null ? c.country_code : null) ?? landCellCountryMap.get(c.h3index) ?? c.country_code).filter(Boolean)
     );
     setCountryCount(countries.size);
     setCellsLoaded(true);
@@ -161,9 +161,9 @@ export default function MapScreen({ onNavigateStats }: Props) {
   );
 
   const handleMarkVisited = useCallback(
-    async (h3index: string) => {
+    async (h3index: string, countryCode?: string) => {
       track("cell_marked_manual");
-      await insertManualCell(h3index);
+      await insertManualCell(h3index, countryCode);
       setSelectedCell(null);
       await loadCells();
     },
@@ -239,15 +239,12 @@ export default function MapScreen({ onNavigateStats }: Props) {
     setScanTotal(0);
 
     try {
-      const rescanStart = Date.now();
-      const lastScanStr = await AsyncStorage.getItem(LAST_SCAN_KEY);
-      const sinceMs = lastScanStr ? Number(lastScanStr) : undefined;
       const result = await scanCameraRoll((proc, tot) => {
         setScanProcessed(proc);
         setScanTotal(tot);
         setScanProgress(tot > 0 ? (proc / tot) * 100 : 0);
-      }, sinceMs);
-      await AsyncStorage.setItem(LAST_SCAN_KEY, String(rescanStart));
+      });
+      await AsyncStorage.setItem(LAST_SCAN_KEY, String(Date.now()));
       setScanHexCount(result.hexCount);
       setScanProgress(100);
       setRescanPhase("done");

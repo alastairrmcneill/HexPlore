@@ -56,7 +56,7 @@ export async function scanCameraRoll(
     const chunk = geotagged.slice(i, i + CHUNK);
     await db.withTransactionAsync(async () => {
       for (const { loc, h3index } of chunk) {
-        await upsertCell(h3index, loc.createdAt);
+        await upsertCell(h3index, loc.createdAt, loc.lat, loc.lng);
         await insertCellPhoto(h3index, loc.id);
       }
     });

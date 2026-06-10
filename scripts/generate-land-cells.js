@@ -20,6 +20,8 @@
 const fs = require('fs');
 const path = require('path');
 const h3 = require('h3-js');
+const booleanPointInPolygon = require('@turf/boolean-point-in-polygon').default;
+const { point } = require('@turf/helpers');
 
 const RESOLUTION = 4;
 const INNER_RES = 5; // polyfill at finer resolution, then parent to RESOLUTION
@@ -98,29 +100,64 @@ for (const feature of landGeo.features) {
     }
   }
 }
-console.log(`  Land cells: ${landCells.size}`);
 
-// Step 2 — build cell → country_code map from country polygons
-console.log('Assigning country codes…');
-const cellToCountry = new Map();
-const countryCellCount = new Map(); // track per-country for fallback detection
-
+// Also add cells from country polygons (catches cells missed by merged land polyfill)
 for (const feature of countriesGeo.features) {
-  const code = getCountryCode(feature);
-  if (!code || code === '-99') continue;
-
-  let assigned = 0;
   for (const polygon of getFeatureCoordinates(feature)) {
     for (const cell of polygonToCells(polygon)) {
-      // Add to land set (catches country cells missed by the merged land polyfill)
       landCells.add(cell);
-      if (!cellToCountry.has(cell)) {
-        cellToCountry.set(cell, code);
-        assigned++;
-      }
     }
   }
-  countryCellCount.set(code, (countryCellCount.get(code) ?? 0) + assigned);
+}
+console.log(`  Land cells: ${landCells.size}`);
+
+// Step 2 — assign country codes by centroid point-in-polygon test.
+// This is more accurate than "first polyfill wins" for border cells because
+// the H3 cell centroid sits unambiguously in one country, regardless of which
+// country's polygon happens to be processed first.
+console.log('Assigning country codes via centroid point-in-polygon…');
+
+// Pre-compute per-feature bounding boxes to skip most polygon tests cheaply.
+const countryEntries = countriesGeo.features
+  .map(feature => {
+    const code = getCountryCode(feature);
+    if (!code || code === '-99') return null;
+    let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
+    for (const poly of getFeatureCoordinates(feature)) {
+      for (const ring of poly) {
+        for (const [lng, lat] of ring) {
+          if (lng < minLng) minLng = lng;
+          if (lng > maxLng) maxLng = lng;
+          if (lat < minLat) minLat = lat;
+          if (lat > maxLat) maxLat = lat;
+        }
+      }
+    }
+    return { feature, code, minLng, maxLng, minLat, maxLat };
+  })
+  .filter(Boolean);
+
+const cellToCountry = new Map();
+const countryCellCount = new Map();
+
+let processed = 0;
+for (const cell of landCells) {
+  // h3.h3ToGeo returns [lat, lng]
+  const [lat, lng] = h3.h3ToGeo(cell);
+  const pt = point([lng, lat]);
+
+  for (const entry of countryEntries) {
+    // Cheap bbox pre-filter
+    if (lat < entry.minLat || lat > entry.maxLat || lng < entry.minLng || lng > entry.maxLng) continue;
+    if (booleanPointInPolygon(pt, entry.feature)) {
+      cellToCountry.set(cell, entry.code);
+      countryCellCount.set(entry.code, (countryCellCount.get(entry.code) ?? 0) + 1);
+      break;
+    }
+  }
+
+  processed++;
+  if (processed % 10000 === 0) console.log(`  Processed ${processed} / ${landCells.size}…`);
 }
 
 // Step 3 — centroid fallback for any country with 0 assigned cells
@@ -138,9 +175,12 @@ for (const feature of countriesGeo.features) {
   try {
     const cell = h3.geoToH3(lat, lng, RESOLUTION);
     landCells.add(cell);
-    if (!cellToCountry.has(cell)) {
-      cellToCountry.set(cell, code);
-    }
+    // Force-assign even if the cell was already claimed by a neighbour.
+    // For countries too small to have any H3 centroid land inside their polygon,
+    // this guarantees one cell in the output. Overriding a neighbouring country's
+    // cell for a single hex is acceptable.
+    cellToCountry.set(cell, code);
+    countryCellCount.set(code, 1);
     fallbackCount++;
     console.log(`  Centroid fallback: ${code} → ${cell} (${lat.toFixed(2)}, ${lng.toFixed(2)})`);
   } catch {}

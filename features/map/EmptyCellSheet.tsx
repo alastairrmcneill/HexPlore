@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import '@/lib/polyfills/emscripten';
+import * as h3 from 'h3-js';
 import BottomSheet from '@/components/BottomSheet';
 import { cellToCenter } from '@/lib/h3/hexUtils';
 import { landCellCountryMap } from '@/lib/h3/landCells';
@@ -14,7 +16,7 @@ interface Props {
   visitedSet: Set<string>;
   accent: string;
   onClose: () => void;
-  onMarkVisited: (h3index: string) => void;
+  onMarkVisited: (h3index: string, countryCode?: string) => void;
 }
 
 function codeToFlag(code: string): string {
@@ -31,9 +33,30 @@ export default function EmptyCellSheet({
   const { t } = useTranslation();
   const { colours } = useTheme();
   const [lat, lng] = h3index ? cellToCenter(h3index) : [0, 0];
-  const countryCode = h3index ? landCellCountryMap.get(h3index) ?? '' : '';
-  const countryName = countryCode ? (COUNTRY_NAMES[countryCode] ?? countryCode) : '';
-  const flag = countryCode ? codeToFlag(countryCode) : '';
+  const centroidCode = h3index ? landCellCountryMap.get(h3index) ?? '' : '';
+  const countryName = centroidCode ? (COUNTRY_NAMES[centroidCode] ?? centroidCode) : '';
+  const flag = centroidCode ? codeToFlag(centroidCode) : '';
+
+  // Detect border cell: collect distinct countries from ring-1 neighbours.
+  const borderCountries = useMemo<{ code: string; name: string; flag: string }[]>(() => {
+    if (!h3index) return [];
+    const neighbors = (h3 as any).kRing(h3index, 1) as string[];
+    const seen = new Set<string>();
+    const result: { code: string; name: string; flag: string }[] = [];
+    for (const cell of neighbors) {
+      const code = landCellCountryMap.get(cell);
+      if (code && !seen.has(code)) {
+        seen.add(code);
+        result.push({ code, name: COUNTRY_NAMES[code] ?? code, flag: codeToFlag(code) });
+      }
+    }
+    return result.length >= 2 ? result : [];
+  }, [h3index]);
+
+  const [selectedCode, setSelectedCode] = useState<string>('');
+  // Reset selection when cell changes so a previous border pick doesn't carry over.
+  React.useEffect(() => { setSelectedCode(''); }, [h3index]);
+  const effectiveCode = selectedCode || centroidCode;
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
@@ -56,10 +79,37 @@ export default function EmptyCellSheet({
         </View>
       </View>
 
+      {borderCountries.length >= 2 && (
+        <View style={styles.pickerSection}>
+          <Text style={[styles.pickerLabel, { color: colours.textMuted }]}>
+            {t('map.emptyCell.borderCell')}
+          </Text>
+          <View style={styles.pickerRow}>
+            {borderCountries.map(({ code, name, flag: f }) => {
+              const active = effectiveCode === code;
+              return (
+                <TouchableOpacity
+                  key={code}
+                  style={[
+                    styles.pickerChip,
+                    { borderColor: active ? accent : colours.border, backgroundColor: active ? accent + '18' : 'transparent' },
+                  ]}
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedCode(code)}
+                >
+                  <Text style={styles.chipFlag}>{f}</Text>
+                  <Text style={[styles.chipName, { color: active ? accent : colours.text }]}>{name}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
+
       <TouchableOpacity
         style={[styles.markBtn, { backgroundColor: colours.text }]}
         activeOpacity={0.8}
-        onPress={() => onMarkVisited(h3index)}
+        onPress={() => onMarkVisited(h3index, effectiveCode || undefined)}
       >
         <Text style={[styles.markBtnText, { color: colours.background }]}>{t('map.emptyCell.markVisited')}</Text>
         <Text style={[styles.markBtnArrow, { color: colours.background }]}>→</Text>
@@ -102,6 +152,37 @@ const styles = StyleSheet.create({
   },
   unvisited: {
     fontSize: 13,
+  },
+  pickerSection: {
+    marginBottom: 16,
+    gap: 10,
+  },
+  pickerLabel: {
+    fontFamily: 'ui-monospace',
+    fontSize: 10,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  pickerChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1.5,
+  },
+  chipFlag: {
+    fontSize: 18,
+  },
+  chipName: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   markBtn: {
     borderRadius: 18,

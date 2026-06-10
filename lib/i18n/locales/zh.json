@@ -60,7 +60,8 @@
     },
     "emptyCell": {
       "notVisited": "尚未访问",
-      "markVisited": "标记为已访问"
+      "markVisited": "标记为已访问",
+      "borderCell": "此六边形跨越边界 — 选择国家："
     },
     "hint": "点击地图上的任意六边形将其标记为已访问",
     "loading": "正在加载地图…"

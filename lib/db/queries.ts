@@ -11,29 +11,33 @@ export type VisitedCell = {
   country: string | null;
   country_code: string | null;
   geocoded_at: number | null;
+  rep_lat: number | null;
+  rep_lng: number | null;
   created_at: number;
 };
 
-export async function upsertCell(h3index: string, photoDateMs: number): Promise<void> {
+export async function upsertCell(h3index: string, photoDateMs: number, lat?: number, lng?: number): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    `INSERT INTO visited_cells (h3index, first_photo_date, last_photo_date, photo_count, source)
-     VALUES (?, ?, ?, 1, 'photo')
+    `INSERT INTO visited_cells (h3index, first_photo_date, last_photo_date, photo_count, source, rep_lat, rep_lng)
+     VALUES (?, ?, ?, 1, 'photo', ?, ?)
      ON CONFLICT(h3index) DO UPDATE SET
        first_photo_date = MIN(first_photo_date, excluded.first_photo_date),
        last_photo_date  = MAX(last_photo_date,  excluded.last_photo_date),
-       photo_count      = photo_count + 1`,
-    [h3index, photoDateMs, photoDateMs],
+       rep_lat          = COALESCE(rep_lat, excluded.rep_lat),
+       rep_lng          = COALESCE(rep_lng, excluded.rep_lng),
+       geocoded_at      = CASE WHEN rep_lat IS NULL THEN NULL ELSE geocoded_at END`,
+    [h3index, photoDateMs, photoDateMs, lat ?? null, lng ?? null],
   );
 }
 
-export async function insertManualCell(h3index: string): Promise<void> {
+export async function insertManualCell(h3index: string, countryCode?: string): Promise<void> {
   const db = await getDb();
   await db.runAsync(
     `INSERT OR IGNORE INTO visited_cells
-       (h3index, first_photo_date, last_photo_date, photo_count, source)
-     VALUES (?, ?, ?, 0, 'manual')`,
-    [h3index, Date.now(), Date.now()],
+       (h3index, first_photo_date, last_photo_date, photo_count, source, country_code)
+     VALUES (?, ?, ?, 0, 'manual', ?)`,
+    [h3index, Date.now(), Date.now(), countryCode ?? null],
   );
 }
 
@@ -44,7 +48,12 @@ export async function getAllCells(): Promise<VisitedCell[]> {
 
 export async function getCellByIndex(h3index: string): Promise<VisitedCell | null> {
   const db = await getDb();
-  return db.getFirstAsync<VisitedCell>("SELECT * FROM visited_cells WHERE h3index = ?", [h3index]);
+  return db.getFirstAsync<VisitedCell>(
+    `SELECT v.*,
+       (SELECT COUNT(*) FROM cell_photos cp WHERE cp.h3index = v.h3index) AS photo_count
+     FROM visited_cells v WHERE v.h3index = ?`,
+    [h3index],
+  );
 }
 
 export async function updateGeocode(

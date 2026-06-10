@@ -10,6 +10,8 @@ export const CREATE_VISITED_CELLS = `
     country          TEXT,
     country_code     TEXT,
     geocoded_at      INTEGER,
+    rep_lat          REAL,
+    rep_lng          REAL,
     created_at       INTEGER DEFAULT (unixepoch())
   )
 `;

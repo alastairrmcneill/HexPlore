@@ -60,7 +60,8 @@
     },
     "emptyCell": {
       "notVisited": "Aún no visitado",
-      "markVisited": "Marcar como visitado"
+      "markVisited": "Marcar como visitado",
+      "borderCell": "Este hex está en una frontera — elige un país:"
     },
     "hint": "Toca cualquier hexágono del mapa para marcarlo como visitado",
     "loading": "Cargando tu mapa…"

@@ -60,7 +60,8 @@
     },
     "emptyCell": {
       "notVisited": "Pas encore visité",
-      "markVisited": "Marquer comme visité"
+      "markVisited": "Marquer comme visité",
+      "borderCell": "Ce hex est à cheval sur une frontière — choisissez un pays :"
     },
     "hint": "Appuyez sur un hexagone pour le marquer comme visité",
     "loading": "Chargement de la carte…"
