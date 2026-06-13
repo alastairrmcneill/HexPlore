@@ -2,7 +2,7 @@
   "expo": {
     "name": "HexPlore",
     "slug": "HexPlore",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "hexplore",
@@ -12,7 +12,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.alastair.r.mcneill.HexPlore",
       "requiresFullScreen": true,
-      "buildNumber": "4"
+      "buildNumber": "5"
     },
     "web": {
       "output": "static"
