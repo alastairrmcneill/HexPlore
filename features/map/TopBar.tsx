@@ -17,11 +17,12 @@ interface Props {
   zoom: number;
   onShare: () => void;
   onAdd: () => void;
+  onScanSharedAlbums: () => void;
   mapMode: "minimal" | "street";
   onToggleMapMode: () => void;
 }
 
-export default function TopBar({ zoom, onShare, onAdd, mapMode, onToggleMapMode }: Props) {
+export default function TopBar({ zoom, onShare, onAdd, onScanSharedAlbums, mapMode, onToggleMapMode }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { colours } = useTheme();
@@ -133,6 +134,15 @@ export default function TopBar({ zoom, onShare, onAdd, mapMode, onToggleMapMode 
             <Text style={[styles.menuItemLabel, { color: colours.text }]}>{t('map.topbar.scanAgain')}</Text>
             <SymbolView name="camera" size={16} tintColor={colours.textMuted} />
           </TouchableOpacity>
+          <View style={[styles.menuDivider, { backgroundColor: colours.border }]} />
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.5}
+            onPress={() => closeMenu(onScanSharedAlbums)}
+          >
+            <Text style={[styles.menuItemLabel, { color: colours.text }]}>{t('map.topbar.scanSharedAlbums')}</Text>
+            <SymbolView name="person.2.crop.square.stack" size={16} tintColor={colours.textMuted} />
+          </TouchableOpacity>
         </Animated.View>
       </Modal>
     </>
@@ -212,6 +222,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+  },
+  menuDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginHorizontal: 16,
   },
   menuItemLabel: {
     fontSize: 16,

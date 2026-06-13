@@ -6,7 +6,8 @@ import { enqueueAllUngeocoded } from "@/lib/media/geocoder";
 import { getCountryCentroid, getMostVisitedCountry } from "@/lib/h3/countryUtils";
 import { latLngToCell } from "@/lib/h3/hexUtils";
 import { landCellCount, landCellCountryMap, landCellIndices } from "@/lib/h3/landCells";
-import { LAST_SCAN_KEY, PermissionDeniedError, scanCameraRoll } from "@/lib/media/scanner";
+import { LAST_SCAN_KEY, PermissionDeniedError, scanCameraRoll, scanSharedAlbums } from "@/lib/media/scanner";
+import SharedAlbumPicker from "./SharedAlbumPicker";
 import "@/lib/polyfills/emscripten";
 import { useTheme } from "@/lib/theme/ThemeContext";
 import type {
@@ -81,11 +82,13 @@ export default function MapScreen({ onNavigateStats }: Props) {
   const [mapMode, setMapMode] = useState<"minimal" | "street">("minimal");
 
   const [rescanPhase, setRescanPhase] = useState<null | "scanning" | "done">(null);
+  const [scanMode, setScanMode] = useState<"camera" | "albums">("camera");
   const [scanProgress, setScanProgress] = useState(0);
   const [scanProcessed, setScanProcessed] = useState(0);
   const [scanTotal, setScanTotal] = useState(0);
   const [scanHexCount, setScanHexCount] = useState(0);
   const rescanRef = useRef(false);
+  const [albumPickerVisible, setAlbumPickerVisible] = useState(false);
 
   const visitedSet = useMemo(() => new Set(visitedIndices), [visitedIndices]);
   const landSet = useMemo(() => new Set(landCellIndices), []);
@@ -233,6 +236,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
   const handleRescan = useCallback(async () => {
     if (rescanRef.current) return;
     rescanRef.current = true;
+    setScanMode("camera");
     setRescanPhase("scanning");
     setScanProgress(0);
     setScanProcessed(0);
@@ -253,6 +257,32 @@ export default function MapScreen({ onNavigateStats }: Props) {
       if (!(e instanceof PermissionDeniedError)) {
         // unexpected error — just dismiss
       }
+      rescanRef.current = false;
+      setRescanPhase(null);
+    }
+  }, [loadCells]);
+
+  const handleScanSharedAlbums = useCallback(async (albumIds: string[]) => {
+    setAlbumPickerVisible(false);
+    if (rescanRef.current) return;
+    rescanRef.current = true;
+    setScanMode("albums");
+    setRescanPhase("scanning");
+    setScanProgress(0);
+    setScanProcessed(0);
+    setScanTotal(0);
+
+    try {
+      const result = await scanSharedAlbums(albumIds, (proc, tot) => {
+        setScanProcessed(proc);
+        setScanTotal(tot);
+        setScanProgress(tot > 0 ? (proc / tot) * 100 : 0);
+      });
+      setScanHexCount(result.hexCount);
+      setScanProgress(100);
+      setRescanPhase("done");
+      await loadCells();
+    } catch {
       rescanRef.current = false;
       setRescanPhase(null);
     }
@@ -286,6 +316,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
         zoom={zoom}
         onShare={handleShare}
         onAdd={handleRescan}
+        onScanSharedAlbums={() => setAlbumPickerVisible(true)}
         mapMode={mapMode}
         onToggleMapMode={() => setMapMode((m) => (m === "minimal" ? "street" : "minimal"))}
       />
@@ -339,13 +370,21 @@ export default function MapScreen({ onNavigateStats }: Props) {
 
       <MapLoadingOverlay visible={!hexLayerReady} />
 
+      <SharedAlbumPicker
+        visible={albumPickerVisible}
+        onClose={() => setAlbumPickerVisible(false)}
+        onScan={handleScanSharedAlbums}
+      />
+
       <Modal visible={rescanPhase !== null} animationType="slide" transparent={false} statusBarTranslucent>
         <View style={[styles.rescanContainer, { backgroundColor: colours.background }]}>
           <ScanRipple accent={accent} progress={scanProgress} />
           <View style={styles.scanText}>
             {rescanPhase === "scanning" ? (
               <>
-                <Text style={[styles.scanLabel, { color: colours.textMuted }]}>{t("map.rescan.scanning")}</Text>
+                <Text style={[styles.scanLabel, { color: colours.textMuted }]}>
+                  {scanMode === "albums" ? t("map.rescan.scanningAlbums") : t("map.rescan.scanning")}
+                </Text>
                 <Text style={[styles.scanPercent, { color: accent }]}>
                   {Math.floor(scanProgress)}
                   <Text style={[styles.scanPercentSign, { color: accent }]}>%</Text>
@@ -365,7 +404,9 @@ export default function MapScreen({ onNavigateStats }: Props) {
                     ? t("map.rescan.noNewHexes")
                     : t("map.rescan.hexesFound", { count: scanHexCount })}
                 </Text>
-                <Text style={[styles.scanDetail, { color: colours.textMuted }]}>{t("map.rescan.mapped")}</Text>
+                <Text style={[styles.scanDetail, { color: colours.textMuted }]}>
+                  {scanMode === "albums" ? t("map.rescan.albumsMapped") : t("map.rescan.mapped")}
+                </Text>
               </>
             )}
           </View>

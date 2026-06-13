@@ -30,6 +30,7 @@
     "topbar": {
       "worldCoverage": "WORLD COVERAGE",
       "scanAgain": "Scan photos again",
+      "scanSharedAlbums": "Scan shared albums",
       "zoom": "ZOOM {{zoom}}× · {{level}}"
     },
     "zoomLevel": {
@@ -39,13 +40,21 @@
     },
     "rescan": {
       "scanning": "SCANNING CAMERA ROLL",
+      "scanningAlbums": "SCANNING SHARED ALBUMS",
       "done": "ALL DONE",
       "detail": "Checking {{processed}} of {{total}} photos for location data",
       "mapped": "Your camera roll has been mapped.",
+      "albumsMapped": "Your shared albums have been mapped.",
       "backToMap": "Back to map",
       "hexesFound_one": "{{count}} hex found",
       "hexesFound_other": "{{count}} hexes found",
       "noNewHexes": "No new hexes found"
+    },
+    "sharedAlbums": {
+      "title": "Shared Albums",
+      "empty": "No shared albums found",
+      "scan": "Scan",
+      "scanCount": "Scan ({{count}})"
     },
     "stats": {
       "worldCovered": "WORLD COVERED",

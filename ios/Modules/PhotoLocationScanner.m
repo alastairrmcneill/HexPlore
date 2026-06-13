@@ -59,4 +59,92 @@ RCT_EXPORT_METHOD(getLocations:(double)sinceMs
   resolve(results);
 }
 
+/**
+ * Returns all iCloud Shared Albums as [{id, name, count, coverAssetId}].
+ * Albums are sorted alphabetically by title.
+ */
+RCT_EXPORT_METHOD(getSharedAlbums:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  PHFetchOptions *albumOptions = [[PHFetchOptions alloc] init];
+  albumOptions.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"localizedTitle" ascending:YES]];
+
+  PHFetchResult<PHAssetCollection *> *albums = [PHAssetCollection
+    fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum
+    subtype:PHAssetCollectionSubtypeAlbumCloudShared
+    options:albumOptions];
+
+  NSMutableArray<NSDictionary *> *results = [NSMutableArray arrayWithCapacity:albums.count];
+
+  // Options for counting all images in an album
+  PHFetchOptions *countOptions = [[PHFetchOptions alloc] init];
+  countOptions.predicate = [NSPredicate predicateWithFormat:@"mediaType == %d", PHAssetMediaTypeImage];
+
+  // Options for fetching the most recent image as cover
+  PHFetchOptions *coverOptions = [[PHFetchOptions alloc] init];
+  coverOptions.predicate = [NSPredicate predicateWithFormat:@"mediaType == %d", PHAssetMediaTypeImage];
+  coverOptions.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
+  coverOptions.fetchLimit = 1;
+
+  [albums enumerateObjectsUsingBlock:^(PHAssetCollection *collection, NSUInteger idx, BOOL *stop) {
+    PHFetchResult<PHAsset *> *allAssets = [PHAsset fetchAssetsInAssetCollection:collection options:countOptions];
+    PHFetchResult<PHAsset *> *coverAssets = [PHAsset fetchAssetsInAssetCollection:collection options:coverOptions];
+
+    NSString *coverAssetId = coverAssets.firstObject ? coverAssets.firstObject.localIdentifier : nil;
+
+    [results addObject:@{
+      @"id":           collection.localIdentifier,
+      @"name":         collection.localizedTitle ?: @"",
+      @"count":        @(allAssets.count),
+      @"coverAssetId": coverAssetId ?: [NSNull null],
+    }];
+  }];
+
+  resolve(results);
+}
+
+/**
+ * Returns geotagged photos from the given shared album IDs as [{id, lat, lng, createdAt}].
+ * Deduplicates across albums by asset localIdentifier.
+ */
+RCT_EXPORT_METHOD(getLocationsFromAlbums:(NSArray<NSString *> *)albumIds
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NSMutableSet<NSString *> *seenIds = [NSMutableSet set];
+  NSMutableArray<NSDictionary *> *results = [NSMutableArray array];
+
+  PHFetchOptions *assetOptions = [[PHFetchOptions alloc] init];
+  assetOptions.predicate = [NSPredicate predicateWithFormat:@"mediaType == %d", PHAssetMediaTypeImage];
+
+  for (NSString *albumId in albumIds) {
+    PHFetchResult<PHAssetCollection *> *collections =
+      [PHAssetCollection fetchAssetCollectionsWithLocalIdentifiers:@[albumId] options:nil];
+    PHAssetCollection *collection = collections.firstObject;
+    if (!collection) continue;
+
+    PHFetchResult<PHAsset *> *assets = [PHAsset fetchAssetsInAssetCollection:collection options:assetOptions];
+
+    [assets enumerateObjectsUsingBlock:^(PHAsset *asset, NSUInteger idx, BOOL *stop) {
+      CLLocation *loc = asset.location;
+      if (!loc) return;
+      if ([seenIds containsObject:asset.localIdentifier]) return;
+      [seenIds addObject:asset.localIdentifier];
+
+      NSTimeInterval createdAt = asset.creationDate
+        ? asset.creationDate.timeIntervalSince1970 * 1000.0
+        : 0;
+
+      [results addObject:@{
+        @"id":        asset.localIdentifier,
+        @"lat":       @(loc.coordinate.latitude),
+        @"lng":       @(loc.coordinate.longitude),
+        @"createdAt": @(createdAt),
+      }];
+    }];
+  }
+
+  resolve(results);
+}
+
 @end
