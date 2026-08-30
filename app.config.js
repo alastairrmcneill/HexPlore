@@ -2,7 +2,7 @@ export default {
   expo: {
     name: "HexPlore",
     slug: "HexPlore",
-    version: "1.2.2",
+    version: "1.3.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "hexplore",
@@ -12,7 +12,7 @@ export default {
       supportsTablet: true,
       bundleIdentifier: "com.alastair.r.mcneill.HexPlore",
       requiresFullScreen: true,
-      buildNumber: "5",
+      buildNumber: "6",
       appleTeamId: "4R5HGU4283",
     },
     web: {
@@ -37,8 +37,7 @@ export default {
       [
         "expo-location",
         {
-          locationWhenInUsePermission:
-            "HexPlore uses your location to reverse-geocode hex cells you've visited.",
+          locationWhenInUsePermission: "HexPlore uses your location to reverse-geocode hex cells you've visited.",
         },
       ],
       [
