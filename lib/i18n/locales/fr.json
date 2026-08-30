@@ -56,7 +56,11 @@
       "firstPhoto": "PREMIÈRE PHOTO",
       "photos": "PHOTOS",
       "coords": "COORDS",
-      "locating": "Localisation…"
+      "locating": "Localisation…",
+      "remove": "Retirer de la carte",
+      "cancel": "Annuler",
+      "removeConfirmTitle": "Retirer ce hex ?",
+      "removeConfirmBody": "Il ne sera plus marqué comme visité et ne comptera plus dans votre couverture."
     },
     "emptyCell": {
       "notVisited": "Pas encore visité",
@@ -103,6 +107,17 @@
       "header": "LOCALISATION",
       "homeCountry": "Pays d'origine",
       "notSet": "Non défini"
+    },
+    "data": {
+      "header": "DONNÉES",
+      "deletedCells": "Hexagones supprimés",
+      "none": "Aucun"
+    },
+    "deletedCellsModal": {
+      "title": "Hexagones supprimés",
+      "empty": "Aucun hexagone supprimé. Ceux que vous retirez de la carte apparaissent ici.",
+      "deletedOn": "Supprimé le {{date}}",
+      "restore": "Restaurer"
     },
     "feedback": {
       "header": "AVIS",

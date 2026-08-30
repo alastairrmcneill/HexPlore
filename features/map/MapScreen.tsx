@@ -1,7 +1,7 @@
 import ScanRipple from "@/features/onboarding/ScanRipple";
 import ShareCard from "@/features/share/ShareCard";
 import { track } from "@/lib/analytics";
-import { getAllCells, insertManualCell } from "@/lib/db/queries";
+import { deleteCell, getAllCells, insertManualCell } from "@/lib/db/queries";
 import { enqueueAllUngeocoded } from "@/lib/media/geocoder";
 import { getCountryCentroid, getMostVisitedCountry } from "@/lib/h3/countryUtils";
 import { latLngToCell } from "@/lib/h3/hexUtils";
@@ -18,6 +18,7 @@ import type {
   ViewStateChangeEvent,
 } from "@maplibre/maplibre-react-native";
 import { Camera, Map } from "@maplibre/maplibre-react-native";
+import { useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import * as StoreReview from "expo-store-review";
@@ -106,6 +107,15 @@ export default function MapScreen({ onNavigateStats }: Props) {
     return indices;
   }, []);
 
+  // Picks up cells restored from Settings' "Deleted cells" list without
+  // needing a full remount — tab screens stay mounted, so a plain mount
+  // effect alone would miss changes made while this tab was in the background.
+  useFocusEffect(
+    useCallback(() => {
+      if (cellsLoaded) loadCells();
+    }, [cellsLoaded, loadCells]),
+  );
+
   useEffect(() => {
     async function init() {
       const indices = await loadCells();
@@ -167,6 +177,16 @@ export default function MapScreen({ onNavigateStats }: Props) {
     async (h3index: string, countryCode?: string) => {
       track("cell_marked_manual");
       await insertManualCell(h3index, countryCode);
+      setSelectedCell(null);
+      await loadCells();
+    },
+    [loadCells],
+  );
+
+  const handleRemoveVisited = useCallback(
+    async (h3index: string) => {
+      track("cell_unmarked");
+      await deleteCell(h3index);
       setSelectedCell(null);
       await loadCells();
     },
@@ -348,6 +368,7 @@ export default function MapScreen({ onNavigateStats }: Props) {
         visitedSet={visitedSet}
         accent={accent}
         onClose={handleCloseSheet}
+        onRemove={handleRemoveVisited}
       />
 
       <EmptyCellSheet

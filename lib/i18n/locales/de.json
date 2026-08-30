@@ -56,7 +56,11 @@
       "firstPhoto": "ERSTES FOTO",
       "photos": "FOTOS",
       "coords": "KOORD.",
-      "locating": "Wird lokalisiert…"
+      "locating": "Wird lokalisiert…",
+      "remove": "Von der Karte entfernen",
+      "cancel": "Abbrechen",
+      "removeConfirmTitle": "Dieses Hex entfernen?",
+      "removeConfirmBody": "Es wird nicht mehr als besucht markiert und zählt nicht mehr zu deiner Abdeckung."
     },
     "emptyCell": {
       "notVisited": "Noch nicht besucht",
@@ -103,6 +107,17 @@
       "header": "STANDORT",
       "homeCountry": "Heimatland",
       "notSet": "Nicht festgelegt"
+    },
+    "data": {
+      "header": "DATEN",
+      "deletedCells": "Gelöschte Hexfelder",
+      "none": "Keine"
+    },
+    "deletedCellsModal": {
+      "title": "Gelöschte Hexfelder",
+      "empty": "Keine gelöschten Hexfelder. Von der Karte entfernte Hexfelder erscheinen hier.",
+      "deletedOn": "Gelöscht am {{date}}",
+      "restore": "Wiederherstellen"
     },
     "feedback": {
       "header": "BEWERTUNGEN",

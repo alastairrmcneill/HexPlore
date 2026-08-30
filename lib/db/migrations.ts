@@ -10,4 +10,5 @@ export async function runMigrations(): Promise<void> {
   // Add rep_lat/rep_lng columns to existing databases (idempotent).
   try { await db.execAsync('ALTER TABLE visited_cells ADD COLUMN rep_lat REAL'); } catch {}
   try { await db.execAsync('ALTER TABLE visited_cells ADD COLUMN rep_lng REAL'); } catch {}
+  try { await db.execAsync('ALTER TABLE visited_cells ADD COLUMN deleted_at INTEGER'); } catch {}
 }

@@ -65,7 +65,11 @@
       "firstPhoto": "FIRST PHOTO",
       "photos": "PHOTOS",
       "coords": "COORDS",
-      "locating": "Locating…"
+      "locating": "Locating…",
+      "remove": "Remove from map",
+      "cancel": "Cancel",
+      "removeConfirmTitle": "Remove this hex?",
+      "removeConfirmBody": "This unmarks it as visited. It won't count toward your coverage anymore."
     },
     "emptyCell": {
       "notVisited": "Not yet visited",
@@ -112,6 +116,17 @@
       "header": "LOCATION",
       "homeCountry": "Home Country",
       "notSet": "Not set"
+    },
+    "data": {
+      "header": "DATA",
+      "deletedCells": "Deleted cells",
+      "none": "None"
+    },
+    "deletedCellsModal": {
+      "title": "Deleted cells",
+      "empty": "No deleted cells. Hexes you remove from the map show up here.",
+      "deletedOn": "Deleted {{date}}",
+      "restore": "Restore"
     },
     "feedback": {
       "header": "FEEDBACK",

@@ -56,7 +56,11 @@
       "firstPhoto": "首张照片",
       "photos": "照片",
       "coords": "坐标",
-      "locating": "定位中…"
+      "locating": "定位中…",
+      "remove": "从地图中移除",
+      "cancel": "取消",
+      "removeConfirmTitle": "移除此六边形？",
+      "removeConfirmBody": "将取消其已访问标记，不再计入你的覆盖率。"
     },
     "emptyCell": {
       "notVisited": "尚未访问",
@@ -103,6 +107,17 @@
       "header": "位置",
       "homeCountry": "所在国家",
       "notSet": "未设置"
+    },
+    "data": {
+      "header": "数据",
+      "deletedCells": "已删除的六边形",
+      "none": "无"
+    },
+    "deletedCellsModal": {
+      "title": "已删除的六边形",
+      "empty": "暂无已删除的六边形。从地图中移除的六边形会显示在这里。",
+      "deletedOn": "删除于 {{date}}",
+      "restore": "恢复"
     },
     "feedback": {
       "header": "反馈",

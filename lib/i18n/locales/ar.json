@@ -56,7 +56,11 @@
       "firstPhoto": "أول صورة",
       "photos": "صور",
       "coords": "إحداثيات",
-      "locating": "جارٍ التحديد…"
+      "locating": "جارٍ التحديد…",
+      "remove": "إزالة من الخريطة",
+      "cancel": "إلغاء",
+      "removeConfirmTitle": "إزالة هذا السداسي؟",
+      "removeConfirmBody": "سيُلغى تحديده كمزار ولن يُحتسب ضمن نطاق تغطيتك بعد الآن."
     },
     "emptyCell": {
       "notVisited": "لم يُزَر بعد",
@@ -103,6 +107,17 @@
       "header": "الموقع",
       "homeCountry": "بلد المنشأ",
       "notSet": "غير محدد"
+    },
+    "data": {
+      "header": "البيانات",
+      "deletedCells": "السداسيات المحذوفة",
+      "none": "لا شيء"
+    },
+    "deletedCellsModal": {
+      "title": "السداسيات المحذوفة",
+      "empty": "لا توجد سداسيات محذوفة. ستظهر هنا السداسيات التي تزيلها من الخريطة.",
+      "deletedOn": "حُذف في {{date}}",
+      "restore": "استعادة"
     },
     "feedback": {
       "header": "التقييمات",

@@ -1,6 +1,7 @@
 import { COUNTRY_NAMES } from "@/constants/countryNames";
 import HomeCountrySheet from "@/features/map/HomeCountrySheet";
 import { track } from "@/lib/analytics";
+import { getDeletedCells } from "@/lib/db/queries";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import { useTheme, ColourScheme } from "@/lib/theme/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -12,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Animated, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AccentColourPicker from "./AccentColourPicker";
+import DeletedCellsModal from "./DeletedCellsModal";
 import LanguagePicker from "./LanguagePicker";
 import PrivacyPolicyModal from "./PrivacyPolicyModal";
 import SettingsRow from "./SettingsRow";
@@ -41,15 +43,22 @@ export default function SettingsScreen() {
   const [homeCountry, setHomeCountry] = useState<string | null>(null);
   const [homeCountryPickerVisible, setHomeCountryPickerVisible] = useState(false);
   const [languagePickerVisible, setLanguagePickerVisible] = useState(false);
+  const [deletedCellsVisible, setDeletedCellsVisible] = useState(false);
+  const [deletedCount, setDeletedCount] = useState(0);
   const [toastMessage, setToastMessage] = useState("");
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function refreshDeletedCount() {
+    getDeletedCells().then((cells) => setDeletedCount(cells.length));
+  }
 
   useEffect(() => {
     track("settings_viewed");
     AsyncStorage.getItem("home_country").then((code) => {
       if (code && code !== "dismissed") setHomeCountry(code);
     });
+    refreshDeletedCount();
   }, []);
 
   function getHomeCountryDisplay(): string {
@@ -157,6 +166,17 @@ export default function SettingsScreen() {
           />
         </Section>
 
+        {/* Data */}
+        <SectionHeader title={t('settings.data.header')} colours={colours} />
+        <Section colours={colours}>
+          <SettingsRow
+            label={t('settings.data.deletedCells')}
+            value={deletedCount > 0 ? String(deletedCount) : t('settings.data.none')}
+            onPress={() => setDeletedCellsVisible(true)}
+            isLast
+          />
+        </Section>
+
         {/* Feedback */}
         <SectionHeader title={t('settings.feedback.header')} colours={colours} />
         <Section colours={colours}>
@@ -190,6 +210,12 @@ export default function SettingsScreen() {
         onDismiss={() => setHomeCountryPickerVisible(false)}
         showSkip={false}
         source="settings"
+      />
+
+      <DeletedCellsModal
+        visible={deletedCellsVisible}
+        onClose={() => setDeletedCellsVisible(false)}
+        onRestored={refreshDeletedCount}
       />
     </>
   );

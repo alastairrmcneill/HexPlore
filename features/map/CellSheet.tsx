@@ -3,9 +3,10 @@ import { getCellByIndex, VisitedCell } from "@/lib/db/queries";
 import { cellToCenter } from "@/lib/h3/hexUtils";
 import { enqueueGeocode } from "@/lib/media/geocoder";
 import { useTheme } from "@/lib/theme/ThemeContext";
+import { SymbolView } from "expo-symbols";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import HexNeighborThumbnail from "./HexNeighborThumbnail";
 import PhotoStrip from "./PhotoStrip";
 
@@ -15,6 +16,7 @@ interface Props {
   visitedSet: Set<string>;
   accent: string;
   onClose: () => void;
+  onRemove: (h3index: string) => void;
 }
 
 function codeToFlag(code: string): string {
@@ -37,7 +39,7 @@ function Metric({ label, value, colours }: { label: string; value: string; colou
   );
 }
 
-export default function CellSheet({ visible, h3index, visitedSet, accent, onClose }: Props) {
+export default function CellSheet({ visible, h3index, visitedSet, accent, onClose, onRemove }: Props) {
   const { t, i18n } = useTranslation();
   const { colours } = useTheme();
   const [cell, setCell] = useState<VisitedCell | null>(null);
@@ -64,6 +66,17 @@ export default function CellSheet({ visible, h3index, visitedSet, accent, onClos
   const dateStr = formatDate(cell?.first_photo_date ?? null, i18n.language);
   const flag = cell?.country_code ? codeToFlag(cell.country_code) : "";
 
+  const handleRemove = () => {
+    Alert.alert(
+      t('map.cell.removeConfirmTitle'),
+      t('map.cell.removeConfirmBody'),
+      [
+        { text: t('map.cell.cancel'), style: "cancel" },
+        { text: t('map.cell.remove'), style: "destructive", onPress: () => onRemove(h3index) },
+      ],
+    );
+  };
+
   let placeName: string;
   if (cell?.place_name) {
     placeName = cell.place_name;
@@ -89,6 +102,14 @@ export default function CellSheet({ visible, h3index, visitedSet, accent, onClos
           </Text>
           {cell?.region ? <Text style={[styles.region, { color: colours.textMuted }]}>{cell.region}</Text> : null}
         </View>
+        <TouchableOpacity
+          style={[styles.removeBtn, { backgroundColor: colours.surface, borderColor: colours.border }]}
+          activeOpacity={0.7}
+          onPress={handleRemove}
+          accessibilityLabel={t('map.cell.remove')}
+        >
+          <SymbolView name="trash" size={16} tintColor="#E0453A" />
+        </TouchableOpacity>
       </View>
 
       <View style={[styles.metrics, { borderColor: colours.border }]}>
@@ -158,6 +179,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     letterSpacing: -0.2,
+    marginTop: 4,
+  },
+  removeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 4,
   },
 });

@@ -12,6 +12,7 @@ export const CREATE_VISITED_CELLS = `
     geocoded_at      INTEGER,
     rep_lat          REAL,
     rep_lng          REAL,
+    deleted_at       INTEGER,
     created_at       INTEGER DEFAULT (unixepoch())
   )
 `;
